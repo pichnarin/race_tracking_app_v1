@@ -1,0 +1,13 @@
+
+  {
+    "uid": "abc123",
+    "name": "Triathlon 2025",
+    "status": "started",
+    "startTime": "2025-04-15T10:00:00Z",
+    "createdAt": "2025-01-01T12:00:00Z",
+    "segments": {
+      "swimming": { "distance": "1km" },
+      "cycling": { "distance": "20km" },
+      "running": { "distance": "5km" }
+    }
+  }
