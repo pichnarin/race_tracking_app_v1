@@ -1,14 +1,15 @@
  {
     "bib": 102,
    "race_id": "abc123",
-    "times": {
-      "swimming": "2025-04-15T10:05:10Z",
-      "cycling": "2025-04-15T10:40:20Z",
-      "running": "2025-04-15T11:02:30Z"
-    },
-    "createdAt": "2025-01-01T12:00:00Z",
-    "totalTime": "01:12:27"
-  }
-
-
-
+   "segmentStartTimes": {
+     "swimming": "2025-04-15T10:00:00Z",
+     "cycling": "2025-04-15T10:20:42Z",
+     "running": "2025-04-15T10:55:50Z"
+   },
+   "segmentFinishTimes": {
+     "swimming": "2025-04-15T10:20:42Z",
+     "cycling": "2025-04-15T10:55:50Z",
+     "running": "2025-04-15T11:18:37Z"
+   },
+   "totalTime": "01:12:27"
+ }
