@@ -202,7 +202,6 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
               child: const Text("Start Race"),
             ),
 
-            //time tracker fetch participant by race
             // Time tracker fetch participants by race
             ElevatedButton(
               onPressed: () async {

@@ -94,10 +94,10 @@ class FireRaceRepo extends RaceRepo {
     final newParticipant = {
       'bib': bib,
       'segmentStartTimes': segmentStartTimes.map(
-            (key, value) => MapEntry(key, value.toIso8601String()),
+        (key, value) => MapEntry(key, value.toIso8601String()),
       ),
       'segmentFinishTimes': segmentFinishTimes.map(
-            (key, value) => MapEntry(key, value.toIso8601String()),
+        (key, value) => MapEntry(key, value.toIso8601String()),
       ),
       'totalTime': totalTime,
     };
@@ -138,17 +138,62 @@ class FireRaceRepo extends RaceRepo {
     final url =
         '${Environment.baseUrl}${Environment.racesCollection}/$raceId.json';
 
+    // Record the race start time
+    final startTime = DateTime.now().toIso8601String();
+
     final response = await client.patch(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'status': 0, // or use RaceStatus.started.index if it's an enum
-        'startTime': DateTime.now().toIso8601String(),
+        'startTime': startTime,
       }),
     );
 
     if (response.statusCode != HttpStatus.ok) {
       throw Exception('Failed to start race: ${response.statusCode}');
+    }
+
+    // Fetch participants of the race
+    final participantsUrl =
+        '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}.json';
+
+    final participantsResponse = await client.get(Uri.parse(participantsUrl));
+    if (participantsResponse.statusCode != HttpStatus.ok) {
+      throw Exception(
+        'Failed to fetch participants: ${participantsResponse.statusCode}',
+      );
+    }
+
+    final Map<String, dynamic>? participantsData = json.decode(
+      participantsResponse.body,
+    );
+    if (participantsData == null) return;
+
+    // Update each participant's swimming start time
+    for (final entry in participantsData.entries) {
+      final participantKey = entry.key;
+      final participantData = entry.value;
+
+      participantData['segmentStartTimes'] ??= {};
+      participantData['segmentStartTimes']['swimming'] = startTime;
+
+      final updateUrl =
+          '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}/$participantKey.json';
+
+      final updateResponse = await client.patch(
+        Uri.parse(updateUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'segmentStartTimes': participantData['segmentStartTimes'],
+        }),
+      );
+
+      if (updateResponse.statusCode != HttpStatus.ok) {
+        throw Exception(
+          'Failed to update participant: ${updateResponse.statusCode}',
+        );
+      }
     }
   }
 
@@ -231,6 +276,69 @@ class FireRaceRepo extends RaceRepo {
     }
   }
 
+  // @override
+  // Future<void> recordSegmentTime({
+  //   required String raceId,
+  //   required String bib,
+  //   required String segment,
+  //   required DateTime finishTime,
+  // }) async {
+  //   final url =
+  //       '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}.json';
+  //
+  //   // Fetch the current participants
+  //   final fetchResponse = await client.get(Uri.parse(url));
+  //   if (fetchResponse.statusCode != HttpStatus.ok) {
+  //     throw Exception(
+  //       'Failed to fetch participants: ${fetchResponse.statusCode}',
+  //     );
+  //   }
+  //
+  //   final Map<String, dynamic>? participantsData = json.decode(
+  //     fetchResponse.body,
+  //   );
+  //   if (participantsData == null) {
+  //     throw Exception('No participants found for race $raceId');
+  //   }
+  //
+  //   // Find the participant by bib
+  //   String? participantKey;
+  //   Map<String, dynamic>? participantData;
+  //   participantsData.forEach((key, value) {
+  //     if (value['bib'] == bib) {
+  //       participantKey = key;
+  //       participantData = value;
+  //     }
+  //   });
+  //
+  //   if (participantKey == null || participantData == null) {
+  //     throw Exception('Participant with bib $bib not found in race $raceId');
+  //   }
+  //
+  //   // Update the segment finish time
+  //   participantData?['segmentFinishTimes'] ??= {};
+  //   participantData?['segmentFinishTimes'][segment] =
+  //       finishTime.toIso8601String();
+  //
+  //   // Send the updated data back to the server
+  //   final updateUrl =
+  //       '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}/$participantKey.json';
+  //
+  //   final updateResponse = await client.patch(
+  //     Uri.parse(updateUrl),
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: json.encode({
+  //       'segmentFinishTimes': participantData?['segmentFinishTimes'],
+  //     }),
+  //   );
+  //
+  //   if (updateResponse.statusCode != HttpStatus.ok) {
+  //     throw Exception(
+  //       'Failed to update segment time: ${updateResponse.statusCode}',
+  //     );
+  //   }
+  // }
+
   @override
   Future<void> recordSegmentTime({
     required String raceId,
@@ -272,8 +380,30 @@ class FireRaceRepo extends RaceRepo {
 
     // Update the segment finish time
     participantData?['segmentFinishTimes'] ??= {};
-    participantData?['segmentFinishTimes'][segment] =
-        finishTime.toIso8601String();
+    participantData?['segmentFinishTimes'][segment] = finishTime.toIso8601String();
+
+    // Update the next segment's start time if applicable
+    participantData?['segmentStartTimes'] ??= {};
+    if (segment == 'swimming') {
+      participantData?['segmentStartTimes']['cycling'] = finishTime.toIso8601String();
+    } else if (segment == 'cycling') {
+      participantData?['segmentStartTimes']['running'] = finishTime.toIso8601String();
+    } else if (segment == 'running') {
+      // Calculate the total time
+      final swimmingStart = DateTime.parse(participantData?['segmentStartTimes']['swimming']);
+      final swimmingFinish = DateTime.parse(participantData?['segmentFinishTimes']['swimming']);
+      final cyclingStart = DateTime.parse(participantData?['segmentStartTimes']['cycling']);
+      final cyclingFinish = DateTime.parse(participantData?['segmentFinishTimes']['cycling']);
+      final runningStart = DateTime.parse(participantData?['segmentStartTimes']['running']);
+      final runningFinish = DateTime.parse(participantData?['segmentFinishTimes']['running']);
+
+      final totalTime = (swimmingFinish.difference(swimmingStart) +
+          cyclingFinish.difference(cyclingStart) +
+          runningFinish.difference(runningStart))
+          .inSeconds;
+
+      participantData?['totalTime'] = formatDuration(Duration(seconds: totalTime));
+    }
 
     // Send the updated data back to the server
     final updateUrl =
@@ -284,6 +414,8 @@ class FireRaceRepo extends RaceRepo {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'segmentFinishTimes': participantData?['segmentFinishTimes'],
+        'segmentStartTimes': participantData?['segmentStartTimes'],
+        if (segment == 'running') 'totalTime': participantData?['totalTime'],
       }),
     );
 
