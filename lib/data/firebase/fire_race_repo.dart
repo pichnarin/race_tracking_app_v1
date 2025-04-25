@@ -134,23 +134,21 @@ class FireRaceRepo extends RaceRepo {
   }
 
   @override
-  Future<void> startRaceEvent() async {
-    final racesResponse = await client.get(Uri.parse(Environment.allRacesUrl));
-    final races = jsonDecode(racesResponse.body) as Map<String, dynamic>?;
+  Future<void> startRaceEvent(String raceId) async {
+    final url =
+        '${Environment.baseUrl}${Environment.racesCollection}/$raceId.json';
 
-    if (races != null) {
-      for (final entry in races.entries) {
-        final raceId = entry.key;
-        final url =
-            '${Environment.baseUrl}${Environment.racesCollection}/$raceId.json';
-        await client.patch(
-          Uri.parse(url),
-          body: jsonEncode({
-            'status': 0,
-            'startTime': DateTime.now().toIso8601String(),
-          }),
-        );
-      }
+    final response = await client.patch(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'status': 0, // or use RaceStatus.started.index if it's an enum
+        'startTime': DateTime.now().toIso8601String(),
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('Failed to start race: ${response.statusCode}');
     }
   }
 
@@ -239,9 +237,61 @@ class FireRaceRepo extends RaceRepo {
     required String bib,
     required String segment,
     required DateTime finishTime,
-  }) {
-    // TODO: implement recordSegmentTime
-    throw UnimplementedError();
+  }) async {
+    final url =
+        '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}.json';
+
+    // Fetch the current participants
+    final fetchResponse = await client.get(Uri.parse(url));
+    if (fetchResponse.statusCode != HttpStatus.ok) {
+      throw Exception(
+        'Failed to fetch participants: ${fetchResponse.statusCode}',
+      );
+    }
+
+    final Map<String, dynamic>? participantsData = json.decode(
+      fetchResponse.body,
+    );
+    if (participantsData == null) {
+      throw Exception('No participants found for race $raceId');
+    }
+
+    // Find the participant by bib
+    String? participantKey;
+    Map<String, dynamic>? participantData;
+    participantsData.forEach((key, value) {
+      if (value['bib'] == bib) {
+        participantKey = key;
+        participantData = value;
+      }
+    });
+
+    if (participantKey == null || participantData == null) {
+      throw Exception('Participant with bib $bib not found in race $raceId');
+    }
+
+    // Update the segment finish time
+    participantData?['segmentFinishTimes'] ??= {};
+    participantData?['segmentFinishTimes'][segment] =
+        finishTime.toIso8601String();
+
+    // Send the updated data back to the server
+    final updateUrl =
+        '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}/$participantKey.json';
+
+    final updateResponse = await client.patch(
+      Uri.parse(updateUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'segmentFinishTimes': participantData?['segmentFinishTimes'],
+      }),
+    );
+
+    if (updateResponse.statusCode != HttpStatus.ok) {
+      throw Exception(
+        'Failed to update segment time: ${updateResponse.statusCode}',
+      );
+    }
   }
 
   @override

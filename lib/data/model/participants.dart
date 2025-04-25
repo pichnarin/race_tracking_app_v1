@@ -23,23 +23,19 @@ class Participant {
   @override
   int get hashCode => super.hashCode ^ pid.hashCode;
 
-
-
   // DTO: Converts JSON from Firestore to Participant object
   factory Participant.fromJson(Map<String, dynamic> json) {
     return Participant(
-      pid: json['pid'].toString(),
-      bib: json['bib'].toString(),
-      raceId: json['race_id'] as String,
-      segmentStartTimes: Map<String, DateTime>.from(
-        json['segmentStartTimes'].map((key, value) => MapEntry(
-            key, DateTime.parse(value))),
-      ),
-      segmentFinishTimes: Map<String, DateTime>.from(
-        json['segmentFinishTimes'].map((key, value) => MapEntry(
-            key, DateTime.parse(value))),
-      ),
-      totalTime: json['totalTime'] as String,
+      pid: json['pid'] ?? '',
+      bib: json['bib'] ?? '',
+      raceId: json['raceId'] ?? '',
+      segmentStartTimes: (json['segmentStartTimes'] as Map<String, dynamic>?)
+          ?.map((key, value) => MapEntry(key, DateTime.parse(value)))
+          ?? {},
+      segmentFinishTimes: (json['segmentFinishTimes'] as Map<String, dynamic>?)
+          ?.map((key, value) => MapEntry(key, DateTime.parse(value)))
+          ?? {},
+      totalTime: json['totalTime'] ?? '00:00:00',
     );
   }
 

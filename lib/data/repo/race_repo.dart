@@ -9,7 +9,7 @@ abstract class RaceRepo {
     required DateTime startTime,
     required Map<String, RaceSegmentDetail> segments,
   });
-  Future<void> startRaceEvent();
+  Future<void> startRaceEvent(String raceId);
   Future<Participant> addParticipant({
     required String bib,
     required String raceId,

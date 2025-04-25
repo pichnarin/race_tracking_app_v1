@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:race_tracking_app_v1/data/model/participants.dart';
 import 'package:race_tracking_app_v1/data/model/races.dart';
 
 import 'fire_race_repo.dart';
@@ -25,6 +26,11 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
   List<Race> _races = []; // To hold the fetched races
   String? _selectedRaceId; // To hold the selected race ID
   String _bib = ''; // To hold the entered bib
+  List<Participant> _participants = []; // To hold the fetched participants
+
+  DateTime? swimmingFinishTime;
+  DateTime? cyclingFinishTime;
+  DateTime? runningFinishTime;
 
   void showLog(String message) {
     print(message);
@@ -83,8 +89,8 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
     try {
       // Fetch the races from the repository
       var races =
-          await repo
-              .fetchRaces(); // Assuming fetchRaces returns a Map<String, Race>
+      await repo
+          .fetchRaces(); // Assuming fetchRaces returns a Map<String, Race>
 
       // Convert the Map to a List
       List<Race> raceList = races.values.toList();
@@ -144,15 +150,15 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
                 });
               },
               items:
-                  _races.map<DropdownMenuItem<String>>((Race race) {
-                    print(
-                      'Dropdown item: ${race.name}, UID: ${race.uid}',
-                    ); // 👈 Add this line
-                    return DropdownMenuItem<String>(
-                      value: race.uid,
-                      child: Text(race.name),
-                    );
-                  }).toList(),
+              _races.map<DropdownMenuItem<String>>((Race race) {
+                print(
+                  'Dropdown item: ${race.name}, UID: ${race.uid}',
+                ); // 👈 Add this line
+                return DropdownMenuItem<String>(
+                  value: race.uid,
+                  child: Text(race.name),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
 
@@ -179,28 +185,142 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
               child: const Text("Add Participant"),
             ),
 
+            //Button to select race and start the race
+            ElevatedButton(
+              onPressed: () async {
+                if (_selectedRaceId != null) {
+                  try {
+                    await repo.startRaceEvent(_selectedRaceId!);
+                    showLog('Race "${_selectedRaceId!}" has started.');
+                  } catch (e) {
+                    showLog('Failed to start race: $e');
+                  }
+                } else {
+                  showLog('Please select a race to start.');
+                }
+              },
+              child: const Text("Start Race"),
+            ),
+
+            //time tracker fetch participant by race
+            // Time tracker fetch participants by race
+            ElevatedButton(
+              onPressed: () async {
+                if (_selectedRaceId != null) {
+                  try {
+                    // Fetch participants from the repository
+                    final participants = await repo.fetchParticipants(
+                      _selectedRaceId!,
+                    );
+
+                    // Update the state with the fetched participants
+                    setState(() {
+                      _participants = participants;
+                    });
+
+                    showLog('Fetched ${participants.length} participants');
+                  } catch (e) {
+                    showLog('Error fetching participants: $e');
+                  }
+                } else {
+                  showLog('Please select a race first.');
+                }
+              },
+              child: const Text("Load Participants"),
+            ),
+
             // Display the fetched races in a ListView
-            if (_races.isNotEmpty)
-              ..._races.map((race) {
-                return Card(
-                  // Wrap in Card for a nice visual effect
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    title: Text(race.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Status: ${race.status}"),
-                        Text("Start Time: ${race.startTime}"),
-                        Text("Segments:"),
-                        ...race.segments.entries.map((entry) {
-                          return Text('${entry.key}: ${entry.value.distance}');
-                        }).toList(),
-                      ],
+            // const SizedBox(height: 16),
+            // if (_races.isNotEmpty)
+            //   ..._races.map((race) {
+            //     return Card(
+            //       // Wrap in Card for a nice visual effect
+            //       margin: const EdgeInsets.symmetric(vertical: 8),
+            //       child: ListTile(
+            //         title: Text(race.name),
+            //         subtitle: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             Text("Status: ${race.status}"),
+            //             Text("Start Time: ${race.startTime}"),
+            //             Text("Segments:"),
+            //             ...race.segments.entries.map((entry) {
+            //               return Text('${entry.key}: ${entry.value.distance}');
+            //             }).toList(),
+            //           ],
+            //         ),
+            //       ),
+            //     );
+            //   }).toList(),
+
+            //display the participant
+            if (_participants.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children:
+                _participants.map((participant) {
+                  int clickCount =
+                  0; // Track the number of clicks for each participant
+
+                  return Card(
+                    child: ListTile(
+                      title: Text('Bib: ${participant.bib}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Total Time: ${participant.totalTime}'),
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (_selectedRaceId != null) {
+                                final now = DateTime.now();
+                                String segment;
+
+                                // Determine the segment based on the click count
+                                if (clickCount == 0) {
+                                  segment = 'swimming';
+                                } else if (clickCount == 1) {
+                                  segment = 'cycling';
+                                } else if (clickCount == 2) {
+                                  segment = 'running';
+                                } else {
+                                  showLog(
+                                    'All segments have been recorded for this participant.',
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  // Record the finish time for the segment
+                                  await repo.recordSegmentTime(
+                                    raceId: _selectedRaceId!,
+                                    bib: participant.bib,
+                                    segment: segment,
+                                    finishTime: now,
+                                  );
+
+                                  showLog(
+                                    'Recorded $segment finish time for Bib: ${participant.bib}',
+                                  );
+                                  clickCount++; // Increment the click count
+                                } catch (e) {
+                                  showLog(
+                                    'Failed to record $segment finish time: $e',
+                                  );
+                                }
+                              } else {
+                                showLog('Please select a race first.');
+                              }
+                            },
+                            child: const Text('Record Finish Time'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              )
+            else
+              const Text('No participants loaded.'),
           ],
         ),
       ),
