@@ -1,12 +1,13 @@
-    {
-    "name": "Triathlon 2025",
-    "status": "started",
-    "startTime": "2025-04-15T10:00:00Z",
+{
+  "raceId123": {
+    "name": "Charity Race",
+    "status": "upcoming",
+    "startTime": "2023-12-01T10:00:00Z",
     "segments": {
-      "swimming": { "distance": "1km" },
-      "cycling": { "distance": "20km" },
-      "running": { "distance": "5km" }
-    }
+      "swimming": { "distance": "1.5km" },
+      "cycling": { "distance": "40km" },
+      "running": { "distance": "10km" }
+    },
+    "createdAt": "2023-11-01T12:00:00Z"
   }
-
-
+}

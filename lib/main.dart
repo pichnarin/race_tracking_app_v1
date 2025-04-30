@@ -1,19 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:race_tracking_app_v1/UI/screens/manager/competition_screen.dart';
+import 'package:race_tracking_app_v1/UI/screens/manager/result_screen.dart';
+import 'UI/screens/manager/home_screen.dart';
 import 'UI/widget/navbar.dart';
-void main() {
-  runApp(const MainApp());
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 1;
+
+  final List<Widget> _pages = [
+    const CompetitionScreen(),
+    const HomeScreen(),
+    const ResultScreen()
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text("Hello world")), // placeholder
-        bottomNavigationBar: Navbar(), // This makes it sit at the bottom
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: Navbar(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
+
     );
   }
+}
+
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MainScreen(),
+  ));
 }

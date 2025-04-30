@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../theme/app_color.dart';
 
 class Navbar extends StatelessWidget {
-  const Navbar({super.key});
+  final int selectedIndex;
+  final ValueChanged<int> onItemSelected;
+
+  const Navbar({
+    super.key,
+    required this.onItemSelected,
+    required this.selectedIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +24,24 @@ class Navbar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            NavbarBtn(icon: Icons.access_alarm_outlined, label: "Tracking"),
-            NavbarBtn(icon: Icons.home, label: "Home"),
-            NavbarBtn(icon: Icons.fact_check_outlined, label: "Result"),
+            NavbarBtn(
+              icon: Icons.access_alarm_outlined,
+              label: "Competition",
+              isSelected: selectedIndex == 0,
+              onTap: () => onItemSelected(0),
+            ),
+            NavbarBtn(
+              icon: Icons.home,
+              label: "Home",
+              isSelected: selectedIndex == 1,
+              onTap: () => onItemSelected(1),
+            ),
+            NavbarBtn(
+              icon: Icons.fact_check_outlined,
+              label: "Result",
+              isSelected: selectedIndex == 2,
+              onTap: () => onItemSelected(2),
+            ),
           ],
         ),
       ),
@@ -28,21 +50,39 @@ class Navbar extends StatelessWidget {
 }
 
 class NavbarBtn extends StatelessWidget {
-  const NavbarBtn({super.key, required this.icon, required this.label});
   final String label;
   final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const NavbarBtn({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: Colors.black),
-        Padding(
-          padding: EdgeInsets.only(top: 8),
-          child: Text(label, style: TextStyle(color: Colors.white)),
-        ),
-      ],
+    final iconColor = isSelected ? Colors.white : Colors.black54;
+    final textStyle = TextStyle(
+      color: isSelected ? Colors.white : Colors.white70,
+      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    );
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: iconColor),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(label, style: textStyle),
+          ),
+        ],
+      ),
     );
   }
 }

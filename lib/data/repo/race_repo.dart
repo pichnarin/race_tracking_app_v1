@@ -30,4 +30,6 @@ abstract class RaceRepo {
   Future<List<Participant>> fetchDashboardScore(String raceId);
   Future<Map<String, Race>> fetchRaces();
   Future<Race?> fetchRace(String raceId);
+
+  Future<List<Map<String, dynamic>>> fetchRaceDetails();
 }

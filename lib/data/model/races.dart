@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 enum RaceStatus {
+  upcoming,
   started,
   ended
 }

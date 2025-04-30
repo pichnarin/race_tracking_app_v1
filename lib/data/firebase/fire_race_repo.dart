@@ -145,7 +145,7 @@ class FireRaceRepo extends RaceRepo {
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'status': 0, // or use RaceStatus.started.index if it's an enum
+        'status': RaceStatus.started.name, // or use RaceStatus.started.index if it's an enum
         'startTime': startTime,
       }),
     );
@@ -380,29 +380,47 @@ class FireRaceRepo extends RaceRepo {
 
     // Update the segment finish time
     participantData?['segmentFinishTimes'] ??= {};
-    participantData?['segmentFinishTimes'][segment] = finishTime.toIso8601String();
+    participantData?['segmentFinishTimes'][segment] =
+        finishTime.toIso8601String();
 
     // Update the next segment's start time if applicable
     participantData?['segmentStartTimes'] ??= {};
     if (segment == 'swimming') {
-      participantData?['segmentStartTimes']['cycling'] = finishTime.toIso8601String();
+      participantData?['segmentStartTimes']['cycling'] =
+          finishTime.toIso8601String();
     } else if (segment == 'cycling') {
-      participantData?['segmentStartTimes']['running'] = finishTime.toIso8601String();
+      participantData?['segmentStartTimes']['running'] =
+          finishTime.toIso8601String();
     } else if (segment == 'running') {
       // Calculate the total time
-      final swimmingStart = DateTime.parse(participantData?['segmentStartTimes']['swimming']);
-      final swimmingFinish = DateTime.parse(participantData?['segmentFinishTimes']['swimming']);
-      final cyclingStart = DateTime.parse(participantData?['segmentStartTimes']['cycling']);
-      final cyclingFinish = DateTime.parse(participantData?['segmentFinishTimes']['cycling']);
-      final runningStart = DateTime.parse(participantData?['segmentStartTimes']['running']);
-      final runningFinish = DateTime.parse(participantData?['segmentFinishTimes']['running']);
+      final swimmingStart = DateTime.parse(
+        participantData?['segmentStartTimes']['swimming'],
+      );
+      final swimmingFinish = DateTime.parse(
+        participantData?['segmentFinishTimes']['swimming'],
+      );
+      final cyclingStart = DateTime.parse(
+        participantData?['segmentStartTimes']['cycling'],
+      );
+      final cyclingFinish = DateTime.parse(
+        participantData?['segmentFinishTimes']['cycling'],
+      );
+      final runningStart = DateTime.parse(
+        participantData?['segmentStartTimes']['running'],
+      );
+      final runningFinish = DateTime.parse(
+        participantData?['segmentFinishTimes']['running'],
+      );
 
-      final totalTime = (swimmingFinish.difference(swimmingStart) +
-          cyclingFinish.difference(cyclingStart) +
-          runningFinish.difference(runningStart))
-          .inSeconds;
+      final totalTime =
+          (swimmingFinish.difference(swimmingStart) +
+                  cyclingFinish.difference(cyclingStart) +
+                  runningFinish.difference(runningStart))
+              .inSeconds;
 
-      participantData?['totalTime'] = formatDuration(Duration(seconds: totalTime));
+      participantData?['totalTime'] = formatDuration(
+        Duration(seconds: totalTime),
+      );
     }
 
     // Send the updated data back to the server
@@ -431,4 +449,35 @@ class FireRaceRepo extends RaceRepo {
     // TODO: implement deleteParticipant
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchRaceDetails() async {
+    try {
+      final uri = Uri.parse(Environment.allRacesUrl);
+      final http.Response response = await http.get(uri);
+
+      if (response.statusCode != HttpStatus.ok) {
+        throw Exception('Failed to fetch races');
+      }
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      // Convert the JSON data into a list of maps
+      final List<Map<String, dynamic>> raceDetails = responseBody.entries.map((entry) {
+        final raceData = entry.value;
+        return {
+          'id': entry.key,
+          'name': raceData['name'],
+          'participants': raceData['participants'] ?? {},
+          'segments': raceData['segments'] ?? {},
+          'startTime': raceData['startTime'],
+          'status': raceData['status'],
+        };
+      }).toList();
+
+      return raceDetails;
+    } catch (e) {
+      throw Exception('Failed to fetch race details: $e');
+    }
+}
 }
