@@ -14,11 +14,21 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 1;
 
-  final List<Widget> _pages = [
-    const CompetitionScreen(),
-    const HomeScreen(),
-    const ResultScreen()
-  ];
+  final List<Widget> _pages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _pages.addAll([
+      const CompetitionScreen(),
+      HomeScreen(onViewAllPressed: () {
+        setState(() {
+          _selectedIndex = 0;
+        });
+      }),
+      const ResultScreen(),
+    ]);
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -34,7 +44,6 @@ class _MainScreenState extends State<MainScreen> {
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
-
     );
   }
 }

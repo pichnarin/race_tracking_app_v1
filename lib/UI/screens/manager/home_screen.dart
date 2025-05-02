@@ -8,8 +8,12 @@ import '../../widget/navbar.dart';
 
 import 'dart:async';
 
+import 'detail_screen.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onViewAllPressed;
+
+  const HomeScreen({super.key, required this.onViewAllPressed});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -186,6 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.directions_run,
                     totalParticipants: '$totalParticipants',
                     time: time,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RaceDetailScreen(raceData: race),
+                        ),
+                      );
+                    },
+
                   );
                 },
               ),
@@ -199,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Spacer(),
                   TextButton(
-                    onPressed: () => print("View all"),
+                    onPressed: widget.onViewAllPressed,
                     child: const Text(
                       "View All ▷",
                       style: TextStyle(
@@ -241,6 +254,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       raceDate: raceDate,
                       totalParticipants: "$totalParticipants participants",
                       raceStatus: status.toString().capitalize(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RaceDetailScreen(raceData: race),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
@@ -276,10 +297,4 @@ String _getMonthAbbr(int month) {
     "Dec",
   ];
   return months[month - 1];
-}
-
-void main() {
-  runApp(
-    const MaterialApp(debugShowCheckedModeBanner: false, home: HomeScreen()),
-  );
 }

@@ -41,7 +41,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
 
   Future<void> _createRace() async {
     final now = DateTime.now();
-    final raceName = "Fun Race"; // Example race name
+    final raceName = "Test race"; // Example race name
     final raceStatus = RaceStatus.upcoming; // Starting status of the race
     final startTime = now; // The current time as start time
 
@@ -227,30 +227,6 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
               },
               child: const Text("Load Participants"),
             ),
-
-            // Display the fetched races in a ListView
-            // const SizedBox(height: 16),
-            // if (_races.isNotEmpty)
-            //   ..._races.map((race) {
-            //     return Card(
-            //       // Wrap in Card for a nice visual effect
-            //       margin: const EdgeInsets.symmetric(vertical: 8),
-            //       child: ListTile(
-            //         title: Text(race.name),
-            //         subtitle: Column(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             Text("Status: ${race.status}"),
-            //             Text("Start Time: ${race.startTime}"),
-            //             Text("Segments:"),
-            //             ...race.segments.entries.map((entry) {
-            //               return Text('${entry.key}: ${entry.value.distance}');
-            //             }).toList(),
-            //           ],
-            //         ),
-            //       ),
-            //     );
-            //   }).toList(),
 
             //display the participant
             if (_participants.isNotEmpty)
