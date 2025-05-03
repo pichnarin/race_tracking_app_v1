@@ -204,11 +204,34 @@ class FireRaceRepo extends RaceRepo {
     return '$hours:$minutes:$seconds';
   }
 
+  
   @override
-  Future<void> updateParticipant(Participant participant) {
-    // TODO: implement updateParticipant
-    throw UnimplementedError();
+  Future<void> updateParticipant(Participant participant) async {
+    final url =
+        '${Environment.baseUrl}${Environment.racesCollection}/${participant.raceId}/${Environment.participantsCollection}/${participant.pid}.json';
+
+    final updateData = {
+      'bib': participant.bib,
+      'segmentStartTimes': participant.segmentStartTimes.map(
+        (key, value) => MapEntry(key, value.toIso8601String()),
+      ),
+      'segmentFinishTimes': participant.segmentFinishTimes.map(
+        (key, value) => MapEntry(key, value.toIso8601String()),
+      ),
+      'totalTime': participant.totalTime,
+    };
+
+    final response = await client.patch(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(updateData),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('Failed to update participant: ${response.statusCode}');
+    }
   }
+
 
   @override
   Future<List<Participant>> fetchDashboardScore(String raceId) {
