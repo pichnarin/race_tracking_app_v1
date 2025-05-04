@@ -65,6 +65,7 @@ class FireRaceRepo extends RaceRepo {
   Future<Participant> addParticipant({
     required String bib,
     required String raceId,
+    required String name,
     required Map<String, DateTime> segmentStartTimes,
     required Map<String, DateTime> segmentFinishTimes,
     required String totalTime,
@@ -92,6 +93,7 @@ class FireRaceRepo extends RaceRepo {
 
     //prepare the new participant data
     final newParticipant = {
+      'name' : name,
       'bib': bib,
       'segmentStartTimes': segmentStartTimes.map(
         (key, value) => MapEntry(key, value.toIso8601String()),
@@ -120,7 +122,9 @@ class FireRaceRepo extends RaceRepo {
         throw Exception('Failed to get a valid PID from the response.');
       }
 
+      //added name
       return Participant(
+        name: name,
         pid: newPid,
         bib: bib,
         raceId: raceId,

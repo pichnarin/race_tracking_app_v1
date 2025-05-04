@@ -15,6 +15,7 @@ abstract class RaceRepo {
   Future<Participant> addParticipant({
     required String bib,
     required String raceId,
+    required String name,
     required Map<String, DateTime> segmentStartTimes,
     required Map<String, DateTime> segmentFinishTimes,
     required String totalTime,
@@ -37,7 +38,7 @@ abstract class RaceRepo {
   Future<List<Participant>> fetchDashboardScore(String raceId);
 
   Future<Map<String, Race>> fetchRaces();
-  
+
   Future<Race?> fetchRace(String raceId);
 
   Future<List<Map<String, dynamic>>> fetchRaceDetails();

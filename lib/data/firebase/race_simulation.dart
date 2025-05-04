@@ -27,6 +27,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
   List<Race> _races = []; // To hold the fetched races
   String? _selectedRaceId; // To hold the selected race ID
   String _bib = ''; // To hold the entered bib
+  String _name = '';
   List<Participant> _participants = []; // To hold the fetched participants
 
   DateTime? swimmingFinishTime;
@@ -125,6 +126,21 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
               child: const Text("2. Fetch Races"),
             ),
 
+            // Input name
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  _name = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Enter name',
+                hintText: 'Enter nameeezz',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Input for bib number
             TextField(
               onChanged: (value) {
@@ -143,7 +159,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
             // Dropdown for selecting race ID
             DropdownButton<String>(
               value: _selectedRaceId,
-              hint: const Text('Select Race'),
+              hint: const Text('Select Racee'),
               onChanged: (String? newValue) {
                 print('User selected race UID: $newValue');
                 setState(() {
@@ -169,6 +185,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
                 if (_bib.isNotEmpty && _selectedRaceId != null) {
                   try {
                     final participant = await repo.addParticipant(
+                      name: _name,
                       bib: _bib,
                       raceId: _selectedRaceId!,
                       segmentStartTimes: {}, // Empty map for start times
@@ -303,3 +320,4 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
     );
   }
 }
+

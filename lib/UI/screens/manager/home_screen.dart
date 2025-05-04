@@ -254,6 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       raceDate: raceDate,
                       totalParticipants: "$totalParticipants participants",
                       raceStatus: status.toString().capitalize(),
+
+                      //go to each race detail
                       onTap: () {
                         Navigator.push(
                           context,

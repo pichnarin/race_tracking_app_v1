@@ -1,6 +1,7 @@
 class Participant {
   late final String pid;
   final String bib;
+  final String name;
   final String raceId;
   final Map<String, DateTime> segmentStartTimes;
   final Map<String, DateTime> segmentFinishTimes;
@@ -9,6 +10,7 @@ class Participant {
   Participant({
     required this.pid,
     required this.bib,
+    required this.name,
     required this.raceId,
     required this.segmentStartTimes,
     required this.segmentFinishTimes,
@@ -26,6 +28,7 @@ class Participant {
   // DTO: Converts JSON from Firestore to Participant object
   factory Participant.fromJson(Map<String, dynamic> json) {
     return Participant(
+      name: json['name'],
       pid: json['pid'] ?? '',
       bib: json['bib'] ?? '',
       raceId: json['raceId'] ?? '',
