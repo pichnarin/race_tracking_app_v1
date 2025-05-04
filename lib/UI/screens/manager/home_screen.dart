@@ -129,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     "Race Manager",
                     style: TextStyle(fontSize: 20, color: Colors.white),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 4), 
                   const Text(
                     "Track and manage your race competitions.",
                     style: TextStyle(fontSize: 10, color: Colors.white),
