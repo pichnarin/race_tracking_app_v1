@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/screens/manager/competition_screen.dart';
 import 'package:race_tracking_app_v1/UI/screens/manager/result_screen.dart';
 import 'UI/screens/manager/home_screen.dart';
-import 'UI/widget/navbar.dart';
+import 'UI/widget/global/navbar.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

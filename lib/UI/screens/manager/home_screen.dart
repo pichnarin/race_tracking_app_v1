@@ -4,7 +4,7 @@ import '../../../data/firebase/fire_race_repo.dart';
 import '../../../data/model/races.dart';
 import '../../widget/manager/race_card.dart';
 import '../../widget/manager/upcoming_race_card.dart';
-import '../../widget/navbar.dart';
+import '../../widget/global/navbar.dart';
 
 import 'dart:async';
 

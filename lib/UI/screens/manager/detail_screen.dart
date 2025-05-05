@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
+import '../../widget/global/participants_table.dart';
 import '../../../data/firebase/fire_race_repo.dart';
 
 class RaceDetailScreen extends StatefulWidget {
@@ -66,93 +67,95 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
             .toList();
 
     return Scaffold(
+      appBar: AppBar(title: Text(race['name'] ?? 'Race Detail')),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(
-                  top: 40,
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(24),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Race Details",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+         child: Padding(
+           padding: const EdgeInsets.only(bottom: 32.0),
+           child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               Container(
+                 padding: const EdgeInsets.only(
+                   top: 40,
+                   left: 16,
+                   right: 16,
+                   bottom: 16,
+                 ),
+                 decoration: const BoxDecoration(
+                   color: Colors.blue,
+                   borderRadius: BorderRadius.vertical(
+                     bottom: Radius.circular(24),
+                   ),
+                 ),
+                 child: const Row(
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   children: [
+                     Text(
+                       "Race Details",
+                       style: TextStyle(
+                         fontSize: 20,
+                         fontWeight: FontWeight.bold,
+                         color: Colors.white,
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+               const SizedBox(height: 24),
+ 
+               // ✅ Race Detail Card
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24),
+                 child: RaceDetailCard(
+                   raceName: raceName,
+                   raceDate: raceDate,
+                   startTime: startTime,
+                   location: location,
+                   raceStatus: raceStatus,
+                 ),
+               ),
+ 
+               const SizedBox(height: 32),
+ 
+               // ✅ Participant List
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 24),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     const Text(
+                       "Participants",
+                       style: TextStyle(
+                         fontSize: 24,
+                         fontWeight: FontWeight.bold,
+                       ),
+                     ),
+                     const SizedBox(height: 16),
+                     const ParticipantListHeader(),
+                     const Divider(thickness: 1.5),
+                     const SizedBox(height: 8),
+                     ...participants.map((participant) {
+                       final bib = participant['bib'] ?? '-';
+                       final name = participant['name'] ?? 'Unknown';
+                       final totalTime = participant['totalTime'] ?? '00:00:00';
+ 
+                       return ParticipantListCard(
+                         bib: bib.toString(),
+                         name: name.toString(),
+                         time: totalTime.toString(),
+                       );
+                     }),
+                   ],
+                 ),
+               ),
+             ],
+           ),
+         ),
+       ),
+     );
+   }
+ }
 
-              // ✅ Race Detail Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: RaceDetailCard(
-                  raceName: raceName,
-                  raceDate: raceDate,
-                  startTime: startTime,
-                  location: location,
-                  raceStatus: raceStatus,
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // ✅ Participant List
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Participants",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const ParticipantListHeader(),
-                    const Divider(thickness: 1.5),
-                    const SizedBox(height: 8),
-                    ...participants.map((participant) {
-                      final bib = participant['bib'] ?? '-';
-                      final name = participant['name'] ?? 'Unknown';
-                      final totalTime = participant['totalTime'] ?? '00:00:00';
-
-                      return ParticipantListCard(
-                        bib: bib.toString(),
-                        name: name.toString(),
-                        time: totalTime.toString(),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // Utilities
 
