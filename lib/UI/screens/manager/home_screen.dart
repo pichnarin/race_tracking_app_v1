@@ -73,9 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final races = await _raceRepo.fetchRaces();
       final upcomingRaces =
-      races.values
-          .where((race) => race.status == RaceStatus.upcoming)
-          .toList();
+          races.values
+              .where((race) => race.status == RaceStatus.upcoming)
+              .toList();
       if (upcomingRaces.isNotEmpty) {
         setState(() {
           _upcomingRaces = upcomingRaces;
@@ -102,175 +102,173 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.only(
-                top: 40,
-                left: 16,
-                right: 16,
-                bottom: 16,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(
+              top: 40,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "Race Manager",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Race Manager",
-                    style: TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4), 
-                  const Text(
-                    "Track and manage your race competitions.",
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                  const SizedBox(height: 12),
-                  _upcomingRaces.isNotEmpty
-                      ? UpcomingRaceCard(
-                    raceName: _upcomingRaces[_currentRaceIndex].name,
-                    raceDate:
-                    _upcomingRaces[_currentRaceIndex].startTime
-                        .toLocal()
-                        .toString()
-                        .split(' ')[0],
-                    icon: Icons.directions_run,
-                  )
-                      : const CircularProgressIndicator(),
-                ],
-              ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Track and manage your race competitions.",
+                  style: TextStyle(fontSize: 10, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                _upcomingRaces.isNotEmpty
+                    ? UpcomingRaceCard(
+                      raceName: _upcomingRaces[_currentRaceIndex].name,
+                      raceDate:
+                          _upcomingRaces[_currentRaceIndex].startTime
+                              .toLocal()
+                              .toString()
+                              .split(' ')[0],
+                      icon: Icons.directions_run,
+                    )
+                    : const CircularProgressIndicator(),
+              ],
             ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                "Feature Races",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+          ),
+          const SizedBox(height: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              "Feature Races",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            if (_raceDetails.isNotEmpty)
-              Builder(
-                builder: (context) {
-                  final race = _raceDetails[_currentFeatureIndex];
-                  final raceName = race['name'] ?? 'Unnamed Race';
+          ),
+          if (_raceDetails.isNotEmpty)
+            Builder(
+              builder: (context) {
+                final race = _raceDetails[_currentFeatureIndex];
+                final raceName = race['name'] ?? 'Unnamed Race';
 
-                  final DateTime? startTime = DateTime.tryParse(
-                    race['startTime'] ?? '',
-                  );
-                  final raceDate =
-                  startTime != null
-                      ? startTime.toLocal().toString().split(' ')[0]
-                      : 'Unknown';
+                final DateTime? startTime = DateTime.tryParse(
+                  race['startTime'] ?? '',
+                );
+                final raceDate =
+                    startTime != null
+                        ? startTime.toLocal().toString().split(' ')[0]
+                        : 'Unknown';
 
-                  final time =
-                  startTime != null
-                      ? startTime
-                      .toLocal()
-                      .toString()
-                      .split(' ')[1]
-                      .substring(0, 5)
-                      : 'N/A';
+                final time =
+                    startTime != null
+                        ? startTime
+                            .toLocal()
+                            .toString()
+                            .split(' ')[1]
+                            .substring(0, 5)
+                        : 'N/A';
 
-                  final totalParticipants =
-                      (race['participants'] as Map?)?.length ?? 0;
+                final totalParticipants =
+                    (race['participants'] as Map?)?.length ?? 0;
 
-                  return FeatureRaceCard(
-                    image: 'https://via.placeholder.com/150',
+                return FeatureRaceCard(
+                  image: 'https://via.placeholder.com/150',
+                  raceName: raceName,
+                  raceDate: raceDate,
+                  icon: Icons.directions_run,
+                  totalParticipants: '$totalParticipants',
+                  time: time,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RaceDetailScreen(raceData: race),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Text(
+                  "Recent Competitions",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: widget.onViewAllPressed,
+                  child: const Text(
+                    "View All ▷",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_raceList.isNotEmpty)
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _raceList.length > 3 ? 3 : _raceList.length,
+              itemBuilder: (context, index) {
+                final race = _raceList[index];
+                final raceName = race['name'] ?? 'Unnamed Race';
+                final DateTime? startTime = DateTime.tryParse(
+                  race['startTime'] ?? '',
+                );
+                final raceDate =
+                    startTime != null
+                        ? "${_formatMonthDay(startTime)}, ${startTime.year}"
+                        : 'Unknown';
+                final totalParticipants =
+                    (race['participants'] as Map?)?.length ?? 0;
+                final status = race['status'] ?? 'Unknown';
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: RaceCard(
                     raceName: raceName,
                     raceDate: raceDate,
-                    icon: Icons.directions_run,
-                    totalParticipants: '$totalParticipants',
-                    time: time,
+                    totalParticipants: "$totalParticipants participants",
+                    raceStatus:
+                        StringCasingExtension(status.toString()).capitalize(),
+
+                    //go to each race detail
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RaceDetailScreen(raceData: race),
+                          builder:
+                              (context) => RaceDetailScreen(raceData: race),
                         ),
                       );
                     },
-
-                  );
-                },
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  const Text(
-                    "Recent Competitions",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: widget.onViewAllPressed,
-                    child: const Text(
-                      "View All ▷",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-            if (_raceList.isNotEmpty)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _raceList.length > 3 ? 3 : _raceList.length,
-                itemBuilder: (context, index) {
-                  final race = _raceList[index];
-                  final raceName = race['name'] ?? 'Unnamed Race';
-                  final DateTime? startTime = DateTime.tryParse(
-                    race['startTime'] ?? '',
-                  );
-                  final raceDate =
-                  startTime != null
-                      ? "${_formatMonthDay(startTime)}, ${startTime.year}"
-                      : 'Unknown';
-                  final totalParticipants =
-                      (race['participants'] as Map?)?.length ?? 0;
-                  final status = race['status'] ?? 'Unknown';
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: RaceCard(
-                      raceName: raceName,
-                      raceDate: raceDate,
-                      totalParticipants: "$totalParticipants participants",
-                      raceStatus: status.toString().capitalize(),
-
-                      //go to each race detail
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RaceDetailScreen(raceData: race),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
   }
 }
 

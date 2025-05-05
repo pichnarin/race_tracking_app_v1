@@ -1,70 +1,184 @@
 import 'package:flutter/material.dart';
-import '../../widget/participants_table.dart';
+import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
+import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
 import '../../../data/firebase/fire_race_repo.dart';
-import '../../widget/Form/add_participant.dart';
 
-class RaceDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> raceData;
+class RaceDetailScreen extends StatefulWidget {
+  final Map<String, dynamic>? raceData;
 
-  const RaceDetailScreen({super.key, required this.raceData});
+  const RaceDetailScreen({super.key, this.raceData});
 
-  Future<void> _startRace(BuildContext context) async {
-    final FireRaceRepo repo = FireRaceRepo();
-    final raceId = raceData['uid'];
-    if (raceId != null) {
-      try {
-        await repo.startRaceEvent(raceId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Race "${raceData['name']}" has started.')),
-        );
-        // Optionally, you might want to refresh the screen or update the UI
-      } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to start race: $e')));
+  @override
+  State<RaceDetailScreen> createState() => _RaceDetailScreenState();
+}
+
+class _RaceDetailScreenState extends State<RaceDetailScreen> {
+  final FireRaceRepo _raceRepo = FireRaceRepo();
+  List<Map<String, dynamic>> allRaces = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadRaceList();
+  }
+
+  Future<void> loadRaceList() async {
+    try {
+      final races = await _raceRepo.fetchRaceDetails();
+      if (races.isNotEmpty) {
+        setState(() {
+          allRaces = races;
+        });
       }
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Race ID is missing.')));
+    } catch (e) {
+      print('Error fetching race details: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final participants = raceData['participants'];
-    // Convert participants map to a list
+    final race = widget.raceData;
+    if (race == null) {
+      return const Scaffold(
+        body: Center(child: Text("No race data available.")),
+      );
+    }
+
+    final raceName = race['name'] ?? 'Unnamed Race';
+    final DateTime? startDateTime = DateTime.tryParse(race['startTime'] ?? '');
+    final raceDate =
+        startDateTime != null
+            ? "${_formatMonthDay(startDateTime)}, ${startDateTime.year}"
+            : 'Unknown Date';
+
+    final startTime =
+        startDateTime != null
+            ? "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}"
+            : 'Unknown Time';
+
+    final location = race['location'] ?? 'Unknown';
+    final raceStatus = (race['status'] ?? 'unknown').toString().capitalize();
+
+    final participantsMap = race['participants'] as Map<String, dynamic>? ?? {};
     final participants =
-        (raceData['participants'] as Map<String, dynamic>).values
-            .map((participant) => participant as Map<String, dynamic>)
+        participantsMap.values
+            .map<Map<String, dynamic>>((p) => p as Map<String, dynamic>)
             .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(raceData['name'] ?? 'Race Detail')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ElevatedButton.icon(
-              onPressed: () {
-             
-                // Or use MaterialPageRoute if needed:
-                Navigator.push(context, MaterialPageRoute(builder: (_) => AddParticipantForm()));
-              },
-              icon: const Icon(Icons.person_add),
-              label: const Text('Add Participant'),
-            ),
-            const SizedBox(height: 16),
-            ParticipantTable(participants: participants),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _startRace(context),
-              child: const Text('Start Race'),
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.only(
+                  top: 40,
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(24),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Race Details",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ✅ Race Detail Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: RaceDetailCard(
+                  raceName: raceName,
+                  raceDate: raceDate,
+                  startTime: startTime,
+                  location: location,
+                  raceStatus: raceStatus,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // ✅ Participant List
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Participants",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const ParticipantListHeader(),
+                    const Divider(thickness: 1.5),
+                    const SizedBox(height: 8),
+                    ...participants.map((participant) {
+                      final bib = participant['bib'] ?? '-';
+                      final name = participant['name'] ?? 'Unknown';
+                      final totalTime = participant['totalTime'] ?? '00:00:00';
+
+                      return ParticipantListCard(
+                        bib: bib.toString(),
+                        name: name.toString(),
+                        time: totalTime.toString(),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+// Utilities
+
+extension StringCasingExtension on String {
+  String capitalize() =>
+      isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
+}
+
+String _formatMonthDay(DateTime date) {
+  return "${_getMonthAbbr(date.month)} ${date.day}";
+}
+
+String _getMonthAbbr(int month) {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return months[month - 1];
 }

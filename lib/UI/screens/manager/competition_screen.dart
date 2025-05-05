@@ -82,11 +82,15 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 ),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
                   Text(
                     "Competitions",
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -206,16 +210,17 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                       raceName: raceName,
                       raceDate: raceDate,
                       totalParticipants: "$totalParticipants participants",
-                      raceStatus: status.toString().capitalize(),
+                      raceStatus:
+                          StringCasingExtension(status.toString()).capitalize(),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RaceDetailScreen(raceData: race),
+                            builder:
+                                (context) => RaceDetailScreen(raceData: race),
                           ),
                         );
                       },
-
                     ),
                   );
                 },

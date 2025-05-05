@@ -16,6 +16,7 @@ class FireRaceRepo extends RaceRepo {
     required RaceStatus status,
     required DateTime startTime,
     required Map<String, RaceSegmentDetail> segments,
+    required String location,
   }) async {
     final existingRaces = await fetchRaces();
 
@@ -32,6 +33,7 @@ class FireRaceRepo extends RaceRepo {
       'status': status.name,
       'startTime': startTime.toIso8601String(),
       'segments': segments.map((key, value) => MapEntry(key, value.toJson())),
+      'location': location,
     };
 
     // Send POST request to create the race
@@ -58,6 +60,7 @@ class FireRaceRepo extends RaceRepo {
       status: status,
       startTime: startTime,
       segments: segments,
+      location: location,
     );
   }
 

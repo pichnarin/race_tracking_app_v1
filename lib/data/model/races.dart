@@ -27,6 +27,7 @@ class Race {
   final RaceStatus status;
   final DateTime startTime;
   final Map<String, RaceSegmentDetail> segments;
+  final String location;
 
   Race({
     required this.uid,
@@ -34,6 +35,7 @@ class Race {
     required this.status,
     required this.startTime,
     required this.segments,
+    required this.location
   });
 
 
@@ -72,6 +74,7 @@ class Race {
           ? DateTime.parse(json['startTime'] as String)
           : DateTime.now(),
       segments: parsedSegments,
+      location: json['location'] as String? ?? 'Unknown Location',
     );
   }
 
@@ -83,6 +86,7 @@ class Race {
       'status': status.name,
       'startTime': startTime.toIso8601String(),
       'segments': segments.map((key, value) => MapEntry(key, value.toJson())),
+      'location': location,
     };
   }
 }

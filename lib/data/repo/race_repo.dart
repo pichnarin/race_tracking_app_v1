@@ -8,6 +8,7 @@ abstract class RaceRepo {
     required RaceStatus status,
     required DateTime startTime,
     required Map<String, RaceSegmentDetail> segments,
+    required String location,
   });
 
   Future<void> startRaceEvent(String raceId);

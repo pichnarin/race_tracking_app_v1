@@ -45,7 +45,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
     final raceName = "Test race"; // Example race name
     final raceStatus = RaceStatus.upcoming; // Starting status of the race
     final startTime = now; // The current time as start time
-
+    final location = "Test Location"; // Example location
     // Example race segments
     final raceSegments = {
       'swimming': RaceSegmentDetail(distance: '1.5km'),
@@ -60,6 +60,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
         status: raceStatus,
         startTime: startTime,
         segments: raceSegments,
+        location: location,
       );
 
       // Assuming createdRace has a UID or unique identifier

@@ -22,7 +22,7 @@ class RaceProvider extends ChangeNotifier {
       raceState != null && raceState!.state == AsyncValueState.success;
 
 // Create a new race
-  void addRace(String name, RaceStatus status, DateTime startTime, Map<String, RaceSegmentDetail> segments) async {
+  void addRace(String name, RaceStatus status, DateTime startTime, Map<String, RaceSegmentDetail> segments, String location) async {
     try {
       raceState = AsyncValue.loading();
       notifyListeners();
@@ -32,6 +32,7 @@ class RaceProvider extends ChangeNotifier {
         status: status,
         startTime: startTime,
         segments: segments,
+        location: location
       );
       raceState = AsyncValue.success(createdRace);
       print("SUCCESS: Race created with UID ${createdRace.uid}");
