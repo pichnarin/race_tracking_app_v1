@@ -27,7 +27,7 @@ class Navbar extends StatelessWidget {
             Expanded(
               child: NavbarBtn(
                 icon: Icons.access_alarm_outlined,
-                label: "Competition",
+                label: "Tracking",
                 isSelected: selectedIndex == 0,
                 onTap: () => onItemSelected(0),
               ),

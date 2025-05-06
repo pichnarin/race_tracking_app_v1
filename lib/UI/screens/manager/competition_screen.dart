@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import '../../../data/firebase/fire_race_repo.dart';
 import '../../widget/manager/race_card.dart';
 import 'detail_screen.dart';
@@ -68,6 +69,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //header
             Container(
               padding: const EdgeInsets.only(
                 top: 40,
@@ -76,7 +78,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 bottom: 16,
               ),
               decoration: const BoxDecoration(
-                color: Colors.blue,
+                color: AppColor.primary,
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(20),
                 ),
@@ -107,6 +109,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
             ),
 
             // Filter and Search Row
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -122,7 +125,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                       decoration: InputDecoration(
                         hintText: "Search races...",
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                          horizontal: 8,
                           vertical: 8,
                         ),
                         border: OutlineInputBorder(
@@ -144,16 +147,15 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+
+                  const SizedBox(width: 5),
+
                   Expanded(
                     flex: 1,
                     child: DropdownButtonFormField<String>(
                       value: selectedFilter,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        contentPadding: EdgeInsets.all(5),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide(color: Colors.grey.shade300),

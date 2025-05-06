@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/feature_race_card.dart';
 import '../../../data/firebase/fire_race_repo.dart';
 import '../../../data/model/races.dart';
 import '../../widget/manager/race_card.dart';
 import '../../widget/manager/upcoming_race_card.dart';
-import '../../widget/global/navbar.dart';
+import '../../widget/manager/manager_navbar.dart';
 
 import 'dart:async';
 
@@ -109,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.only(
               top: 40,
               left: 16,
@@ -116,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
               bottom: 16,
             ),
             decoration: const BoxDecoration(
-              color: Colors.blue,
+              color: AppColor.primary,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
             child: Column(
