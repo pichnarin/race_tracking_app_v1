@@ -22,25 +22,31 @@ class Navbar extends StatelessWidget {
         height: 80,
         color: AppColor.primary,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // Wrap each NavbarBtn in an Expanded to evenly space them and center content vertically
           children: [
-            NavbarBtn(
-              icon: Icons.access_alarm_outlined,
-              label: "Competition",
-              isSelected: selectedIndex == 0,
-              onTap: () => onItemSelected(0),
+            Expanded(
+              child: NavbarBtn(
+                icon: Icons.access_alarm_outlined,
+                label: "Competition",
+                isSelected: selectedIndex == 0,
+                onTap: () => onItemSelected(0),
+              ),
             ),
-            NavbarBtn(
-              icon: Icons.home,
-              label: "Home",
-              isSelected: selectedIndex == 1,
-              onTap: () => onItemSelected(1),
+            Expanded(
+              child: NavbarBtn(
+                icon: Icons.home,
+                label: "Home",
+                isSelected: selectedIndex == 1,
+                onTap: () => onItemSelected(1),
+              ),
             ),
-            NavbarBtn(
-              icon: Icons.fact_check_outlined,
-              label: "Result",
-              isSelected: selectedIndex == 2,
-              onTap: () => onItemSelected(2),
+            Expanded(
+              child: NavbarBtn(
+                icon: Icons.fact_check_outlined,
+                label: "Result",
+                isSelected: selectedIndex == 2,
+                onTap: () => onItemSelected(2),
+              ),
             ),
           ],
         ),
@@ -73,16 +79,17 @@ class NavbarBtn extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: iconColor),
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(label, style: textStyle),
-          ),
-        ],
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min, 
+          children: [
+            Icon(icon, color: iconColor),
+            const SizedBox(height: 4),
+            Text(label, style: textStyle),
+          ],
+        ),
       ),
     );
   }
 }
+
