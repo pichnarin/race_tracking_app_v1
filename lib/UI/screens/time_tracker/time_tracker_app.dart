@@ -15,9 +15,9 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   int _selectedIndex = 1; // Default to home page
 
   final List<Widget> _pages = [
-    HomePage(), // Replace with your actual widget
+    HomePage(), 
     TrackingPage(),
-    ResultPage(), // Replace with your actual widget
+    ResultPage(), 
   ];
 
   void _onItemSelected(int index) {
