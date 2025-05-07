@@ -496,11 +496,12 @@ class FireRaceRepo extends RaceRepo {
       final List<Map<String, dynamic>> raceDetails = responseBody.entries.map((entry) {
         final raceData = entry.value;
         return {
-          'id': entry.key,
+          'uid': entry.key,
           'name': raceData['name'],
           'participants': raceData['participants'] ?? {},
           'segments': raceData['segments'] ?? {},
           'startTime': raceData['startTime'],
+          'location': raceData['location'],
           'status': raceData['status'],
         };
       }).toList();

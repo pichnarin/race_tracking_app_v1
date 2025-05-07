@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
+import '../../widget/Form/add_participant.dart';
 import '../../widget/global/participants_table.dart';
 import '../../../data/firebase/fire_race_repo.dart';
 
@@ -46,6 +47,7 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
     }
 
     final raceName = race['name'] ?? 'Unnamed Race';
+    final raceId = race['uid'];
     final DateTime? startDateTime = DateTime.tryParse(race['startTime'] ?? '');
     final raceDate =
         startDateTime != null
@@ -60,11 +62,12 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
     final location = race['location'] ?? 'Unknown';
     final raceStatus = (race['status'] ?? 'unknown').toString().capitalize();
 
-    final participantsMap = race['participants'] as Map<String, dynamic>? ?? {};
-    final participants =
-        participantsMap.values
+    final participantsMap = (race['participants'] as Map?)?.cast<String, dynamic>() ?? {};
+    final participants = participantsMap.isNotEmpty
+        ? participantsMap.values
             .map<Map<String, dynamic>>((p) => p as Map<String, dynamic>)
-            .toList();
+            .toList()
+        : [];
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -134,28 +137,61 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Participants",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Participants",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            // Show Add Participant dialog when the button is pressed
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AddParticipantForm(
+                                  repo: _raceRepo, // Pass the repository for adding participants
+                                  raceId: raceId, // Pass
+                                  onParticipantAdded: () {
+                                    loadRaceList(); // Refresh the participant list
+                                  },
+                                );
+                              },
+                            );
+                          },
+                          icon: const Icon(Icons.add, color: Colors.black),
+                          tooltip: 'Add a new participant',
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     const ParticipantListHeader(),
                     const Divider(thickness: 1.5),
                     const SizedBox(height: 8),
-                    ...participants.map((participant) {
-                      final bib = participant['bib'] ?? '-';
-                      final name = participant['name'] ?? 'Unknown';
-                      final totalTime = participant['totalTime'] ?? '00:00:00';
 
-                      return ParticipantListCard(
-                        bib: bib.toString(),
-                        name: name.toString(),
-                        time: totalTime.toString(),
-                      );
-                    }),
+                    if (participants.isEmpty)
+                      const Text(
+                        "No participants yet.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      )
+                    else
+                      ...participants.map((participant) {
+                        final bib = participant['bib'] ?? '-';
+                        final name = participant['name'] ?? 'Unknown';
+                        final totalTime = participant['totalTime'] ?? '00:00:00';
+
+                        return ParticipantListCard(
+                          bib: bib.toString(),
+                          name: name.toString(),
+                          time: totalTime.toString(),
+                        );
+                      }),
                   ],
                 ),
               ),

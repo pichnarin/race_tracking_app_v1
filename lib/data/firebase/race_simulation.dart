@@ -43,7 +43,7 @@ class _RaceTestScreenState extends State<RaceTestScreen> {
 
   Future<void> _createRace() async {
     final now = DateTime.now();
-    final raceName = "Techo"; // Example race name
+    final raceName = "Cool Race"; // Example race name
     final raceStatus = RaceStatus.upcoming; // Starting status of the race
     final startTime = now; // The current time as start time
     final location = "Phnom penh";

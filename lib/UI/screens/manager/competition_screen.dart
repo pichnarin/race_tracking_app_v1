@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import '../../../data/firebase/fire_race_repo.dart';
+import '../../widget/Form/create_race.dart';
 import '../../widget/manager/race_card.dart';
 import 'detail_screen.dart';
 
@@ -84,15 +85,37 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    "Competitions",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        "Competitions",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
+                  ),
+
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => CreateRaceForm(
+                          repo: _raceRepo,
+                          onRaceCreated: (createdRace) {
+                            loadRaceList(); // refresh the race list after creation
+                          },
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    tooltip: 'Add a new race',
                   ),
                 ],
               ),
@@ -109,7 +132,6 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
             ),
 
             // Filter and Search Row
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -190,6 +212,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filteredRaces.length > 7 ? 7 : filteredRaces.length,
                 itemBuilder: (context, index) {
+                  final uid = filteredRaces[index]['uid'] ?? '';
                   final race = filteredRaces[index];
                   final raceName = race['name'] ?? 'Unnamed Race';
                   final DateTime? startTime = DateTime.tryParse(
