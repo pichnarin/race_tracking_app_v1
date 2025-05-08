@@ -212,7 +212,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filteredRaces.length > 7 ? 7 : filteredRaces.length,
                 itemBuilder: (context, index) {
-                  final uid = filteredRaces[index]['uid'] ?? '';
+                  // final uid = filteredRaces[index]['uid'] ?? '';
                   final race = filteredRaces[index];
                   final raceName = race['name'] ?? 'Unnamed Race';
                   final DateTime? startTime = DateTime.tryParse(

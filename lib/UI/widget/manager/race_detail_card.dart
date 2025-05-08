@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RaceDetailCard extends StatelessWidget {
   final String raceName;
-  final String raceDate;
-  final String startTime;
+  // final String raceDate;
+  final DateTime startTime;
   final String location;
   final String raceStatus;
 
   const RaceDetailCard({
     super.key,
     required this.raceName,
-    required this.raceDate,
+    // required this.raceDate,
     required this.startTime,
     required this.location,
     required this.raceStatus,
@@ -44,6 +45,10 @@ class RaceDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final formattedDate = DateFormat.yMMMMd().format(startTime);
+    final formattedTime = DateFormat.jm().format(startTime);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -58,8 +63,8 @@ class RaceDetailCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _buildDetailRow(Icons.calendar_today, "Date", raceDate),
-            _buildDetailRow(Icons.access_time, "Start Time", startTime),
+            _buildDetailRow(Icons.calendar_today, "Date", formattedDate),
+            _buildDetailRow(Icons.access_time, "Start Time", formattedTime),
             _buildDetailRow(Icons.location_on, "Location", location),
             const SizedBox(height: 12),
             Container(

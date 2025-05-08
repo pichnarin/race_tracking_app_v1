@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
 import '../../widget/Form/add_participant.dart';
@@ -49,15 +50,15 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
     final raceName = race['name'] ?? 'Unnamed Race';
     final raceId = race['uid'];
     final DateTime? startDateTime = DateTime.tryParse(race['startTime'] ?? '');
-    final raceDate =
-        startDateTime != null
-            ? "${_formatMonthDay(startDateTime)}, ${startDateTime.year}"
-            : 'Unknown Date';
 
-    final startTime =
-        startDateTime != null
-            ? "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}"
-            : 'Unknown Time';
+    final raceDate = startDateTime != null
+        ? DateFormat.yMMMd().format(startDateTime)
+        : 'Unknown Date';
+
+    final startTime = startDateTime != null
+        ? DateFormat.jm().format(startDateTime)
+        : 'Unknown Time';
+
 
     final location = race['location'] ?? 'Unknown';
     final raceStatus = (race['status'] ?? 'unknown').toString().capitalize();
@@ -122,8 +123,7 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: RaceDetailCard(
                   raceName: raceName,
-                  raceDate: raceDate,
-                  startTime: startTime,
+                  startTime: startDateTime ?? DateTime.now(),
                   location: location,
                   raceStatus: raceStatus,
                 ),
