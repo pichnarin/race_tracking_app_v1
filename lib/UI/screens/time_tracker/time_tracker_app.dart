@@ -12,11 +12,10 @@ class TimeTrackerApp extends StatefulWidget {
 }
 
 class _TimeTrackerAppState extends State<TimeTrackerApp> {
-  int _selectedIndex = 1; // Default to home page
+  int _selectedIndex = 0; // Default to home page
 
   final List<Widget> _pages = [
-    TrackingPage(),
-    HomePage(), 
+    HomePage(),
     ResultPage(), 
   ];
 

@@ -24,19 +24,19 @@ class Navbar extends StatelessWidget {
         child: Row(
           // Wrap each NavbarBtn in an Expanded to evenly space them and center content vertically
           children: [
-            Expanded(
-              child: NavbarBtn(
-                icon: Icons.access_alarm_outlined,
-                label: "Tracking",
-                isSelected: selectedIndex == 0,
-                onTap: () => onItemSelected(0),
-              ),
-            ),
+            // Expanded(
+            //   child: NavbarBtn(
+            //     icon: Icons.access_alarm_outlined,
+            //     label: "Tracking",
+            //     isSelected: selectedIndex == 0,
+            //     onTap: () => onItemSelected(0),
+            //   ),
+            // ),
             Expanded(
               child: NavbarBtn(
                 icon: Icons.home,
                 label: "Home",
-                isSelected: selectedIndex == 1,
+                isSelected: selectedIndex == 0,
                 onTap: () => onItemSelected(1),
               ),
             ),
@@ -44,7 +44,7 @@ class Navbar extends StatelessWidget {
               child: NavbarBtn(
                 icon: Icons.fact_check_outlined,
                 label: "Result",
-                isSelected: selectedIndex == 2,
+                isSelected: selectedIndex == 1,
                 onTap: () => onItemSelected(2),
               ),
             ),

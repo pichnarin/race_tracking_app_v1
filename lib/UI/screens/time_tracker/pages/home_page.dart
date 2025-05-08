@@ -170,17 +170,40 @@ class _HomePageState extends State<HomePage> {
                     raceStatus:
                     StringCasingExtension(status.toString()).capitalize(),
 
-                    //go to each race detail
                     onTap: () {
+                      final raceId = race['uid']; // Make sure 'uid' exists
+                      if (raceId == null) {
+                        // Optional safeguard
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Missing race ID")),
+                        );
+                        return;
+                      }
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => TrackingPage(
                             raceData: race,
+                            recordSegmentTime: ({
+                              required String raceId,
+                              required String bib,
+                              required String segment,
+                              required DateTime finishTime,
+                            }) {
+                              return _raceRepo.recordSegmentTime(
+                                raceId: raceId,
+                                bib: bib,
+                                segment: segment,
+                                finishTime: finishTime,
+                              );
+                            },
                           ),
                         ),
                       );
                     },
+
+
                   ),
                 );
               },
