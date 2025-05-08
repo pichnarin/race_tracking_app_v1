@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
+import '../../theme/app_color.dart';
 import '../../widget/Form/add_participant.dart';
 import '../../widget/global/participants_table.dart';
 import '../../../data/firebase/fire_race_repo.dart';
@@ -51,29 +54,34 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
     final raceId = race['uid'];
     final DateTime? startDateTime = DateTime.tryParse(race['startTime'] ?? '');
 
-    final raceDate = startDateTime != null
-        ? DateFormat.yMMMd().format(startDateTime)
-        : 'Unknown Date';
-
-    final startTime = startDateTime != null
-        ? DateFormat.jm().format(startDateTime)
-        : 'Unknown Time';
-
+    final raceDate =
+        startDateTime != null
+            ? DateFormat.yMMMd().format(startDateTime)
+            : 'Unknown Date';
 
     final location = race['location'] ?? 'Unknown';
     final raceStatus = (race['status'] ?? 'unknown').toString().capitalize();
 
-    final participantsMap = (race['participants'] as Map?)?.cast<String, dynamic>() ?? {};
-    final participants = participantsMap.isNotEmpty
-        ? participantsMap.values
-            .map<Map<String, dynamic>>((p) => p as Map<String, dynamic>)
-            .toList()
-        : [];
+    final participantsMap =
+        (race['participants'] as Map?)?.cast<String, dynamic>() ?? {};
+    final participants =
+        participantsMap.isNotEmpty
+            ? participantsMap.values
+                .map<Map<String, dynamic>>((p) => p as Map<String, dynamic>)
+                .toList()
+            : [];
+
+    final bool canStartRace =
+        startDateTime != null &&
+        DateTime.now().isAfter(startDateTime) &&
+        raceStatus.toLowerCase() == 'upcoming';
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 32.0),
+          padding: const EdgeInsets.only(
+            bottom: 100.0,
+          ), // reserve space for button
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -85,7 +93,7 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                   bottom: 16,
                 ),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: AppColor.primary,
                   borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(24),
                   ),
@@ -118,7 +126,6 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
               ),
 
               const SizedBox(height: 24),
-              // race Detail Card
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: RaceDetailCard(
@@ -130,8 +137,6 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
               ),
 
               const SizedBox(height: 32),
-
-              //participant List
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
@@ -151,15 +156,14 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                         ),
                         IconButton(
                           onPressed: () {
-                            // Show Add Participant dialog when the button is pressed
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
                                 return AddParticipantForm(
-                                  repo: _raceRepo, // Pass the repository for adding participants
-                                  raceId: raceId, // Pass
+                                  repo: _raceRepo,
+                                  raceId: raceId,
                                   onParticipantAdded: () {
-                                    loadRaceList(); // Refresh the participant list
+                                    loadRaceList();
                                   },
                                 );
                               },
@@ -174,7 +178,6 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                     const ParticipantListHeader(),
                     const Divider(thickness: 1.5),
                     const SizedBox(height: 8),
-
                     if (participants.isEmpty)
                       const Text(
                         "No participants yet.",
@@ -184,7 +187,8 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                       ...participants.map((participant) {
                         final bib = participant['bib'] ?? '-';
                         final name = participant['name'] ?? 'Unknown';
-                        final totalTime = participant['totalTime'] ?? '00:00:00';
+                        final totalTime =
+                            participant['totalTime'] ?? '00:00:00';
 
                         return ParticipantListCard(
                           bib: bib.toString(),
@@ -199,12 +203,54 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
           ),
         ),
       ),
+
+      bottomSheet:
+          raceStatus.toLowerCase() == 'upcoming'
+              ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        canStartRace
+                            ? () async {
+                              try {
+                                await _raceRepo.startRaceEvent(raceId);
+                                await loadRaceList();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Race started successfully!'),
+                                  ),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: ${e.toString()}'),
+                                  ),
+                                );
+                              }
+                            }
+                            : null,
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Start Race'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              : null,
     );
   }
 }
 
 // Utilities
-
 extension StringCasingExtension on String {
   String capitalize() =>
       isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';

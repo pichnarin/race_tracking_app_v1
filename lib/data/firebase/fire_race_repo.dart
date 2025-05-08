@@ -306,69 +306,6 @@ class FireRaceRepo extends RaceRepo {
     }
   }
 
-  // @override
-  // Future<void> recordSegmentTime({
-  //   required String raceId,
-  //   required String bib,
-  //   required String segment,
-  //   required DateTime finishTime,
-  // }) async {
-  //   final url =
-  //       '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}.json';
-  //
-  //   // Fetch the current participants
-  //   final fetchResponse = await client.get(Uri.parse(url));
-  //   if (fetchResponse.statusCode != HttpStatus.ok) {
-  //     throw Exception(
-  //       'Failed to fetch participants: ${fetchResponse.statusCode}',
-  //     );
-  //   }
-  //
-  //   final Map<String, dynamic>? participantsData = json.decode(
-  //     fetchResponse.body,
-  //   );
-  //   if (participantsData == null) {
-  //     throw Exception('No participants found for race $raceId');
-  //   }
-  //
-  //   // Find the participant by bib
-  //   String? participantKey;
-  //   Map<String, dynamic>? participantData;
-  //   participantsData.forEach((key, value) {
-  //     if (value['bib'] == bib) {
-  //       participantKey = key;
-  //       participantData = value;
-  //     }
-  //   });
-  //
-  //   if (participantKey == null || participantData == null) {
-  //     throw Exception('Participant with bib $bib not found in race $raceId');
-  //   }
-  //
-  //   // Update the segment finish time
-  //   participantData?['segmentFinishTimes'] ??= {};
-  //   participantData?['segmentFinishTimes'][segment] =
-  //       finishTime.toIso8601String();
-  //
-  //   // Send the updated data back to the server
-  //   final updateUrl =
-  //       '${Environment.baseUrl}${Environment.racesCollection}/$raceId/${Environment.participantsCollection}/$participantKey.json';
-  //
-  //   final updateResponse = await client.patch(
-  //     Uri.parse(updateUrl),
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: json.encode({
-  //       'segmentFinishTimes': participantData?['segmentFinishTimes'],
-  //     }),
-  //   );
-  //
-  //   if (updateResponse.statusCode != HttpStatus.ok) {
-  //     throw Exception(
-  //       'Failed to update segment time: ${updateResponse.statusCode}',
-  //     );
-  //   }
-  // }
-
   @override
   Future<void> recordSegmentTime({
     required String raceId,
