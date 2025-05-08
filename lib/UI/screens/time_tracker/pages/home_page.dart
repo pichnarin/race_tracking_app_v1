@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:race_tracking_app_v1/UI/screens/time_tracker/pages/tracking_page.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import 'dart:async';
 import '../../../../data/firebase/fire_race_repo.dart';
@@ -174,8 +175,9 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => RaceDetailScreen(raceData: race),
+                          builder: (context) => TrackingPage(
+                            raceData: race,
+                          ),
                         ),
                       );
                     },
