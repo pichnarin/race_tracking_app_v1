@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './time_tracker_app.dart';
+import '../UI/widget/time_tracker/time_tracker_app.dart';
 
 void main() {
   runApp(

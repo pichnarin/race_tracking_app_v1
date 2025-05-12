@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'pages/home_page.dart';
-import 'pages/tracking_page.dart';
-import 'pages/result_page.dart';
-import '../../widget/time_tracker/time_tracker_navbar.dart';
+import '../../screens/time_tracker/pages/home_page.dart';
+import '../../screens/time_tracker/pages/tracking_page.dart';
+import '../../screens/time_tracker/pages/result_page.dart';
+import 'time_tracker_navbar.dart';
 
 class TimeTrackerApp extends StatefulWidget {
   const TimeTrackerApp({super.key});

@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 enum RaceStatus {
   upcoming,
   started,
-  ended
+  completed,
 }
 
 class RaceSegmentDetail {

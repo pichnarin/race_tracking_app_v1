@@ -96,7 +96,7 @@ class FireRaceRepo extends RaceRepo {
 
     //prepare the new participant data
     final newParticipant = {
-      'name' : name,
+      'name': name,
       'bib': bib,
       'segmentStartTimes': segmentStartTimes.map(
         (key, value) => MapEntry(key, value.toIso8601String()),
@@ -145,6 +145,24 @@ class FireRaceRepo extends RaceRepo {
     final url =
         '${Environment.baseUrl}${Environment.racesCollection}/$raceId.json';
 
+    // First, fetch the current race data to check status
+    final raceResponse = await client.get(Uri.parse(url));
+    if (raceResponse.statusCode != HttpStatus.ok) {
+      throw Exception('Failed to fetch race data: ${raceResponse.statusCode}');
+    }
+
+    final Map<String, dynamic>? raceData = json.decode(raceResponse.body);
+    if (raceData == null) {
+      throw Exception('Race data is null');
+    }
+
+    // Check if the race has already started or is completed
+    final String currentStatus = raceData['status']?.toString() ?? '';
+    if (currentStatus == RaceStatus.started.name ||
+        currentStatus == RaceStatus.completed.name) {
+      throw Exception('Race has already started or completed.');
+    }
+
     // Record the race start time
     final startTime = DateTime.now().toIso8601String();
 
@@ -152,7 +170,7 @@ class FireRaceRepo extends RaceRepo {
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'status': RaceStatus.started.name, // or use RaceStatus.started.index if it's an enum
+        'status': RaceStatus.started.name,
         'startTime': startTime,
       }),
     );
@@ -211,7 +229,6 @@ class FireRaceRepo extends RaceRepo {
     return '$hours:$minutes:$seconds';
   }
 
-  
   @override
   Future<void> updateParticipant(Participant participant) async {
     final url =
@@ -239,6 +256,54 @@ class FireRaceRepo extends RaceRepo {
     }
   }
 
+  @override
+  Future<void> endRaceEvent(String raceId) async {
+    final url =
+        '${Environment.baseUrl}${Environment.racesCollection}/$raceId.json';
+
+    try {
+      // Fetch the current race details
+      final fetchResponse = await client.get(Uri.parse(url));
+      if (fetchResponse.statusCode != HttpStatus.ok) {
+        throw Exception(
+          'Failed to fetch race details: ${fetchResponse.statusCode}',
+        );
+      }
+
+      final raceData = jsonDecode(fetchResponse.body);
+
+      final String status = raceData['status']?.toString() ?? '';
+
+      // If already completed, block
+      if (status == RaceStatus.completed.name) {
+        throw Exception('The race has already been completed.');
+      }
+
+      // If not started, block
+      if (status != RaceStatus.started.name) {
+        throw Exception('Cannot end a race that has not started yet.');
+      }
+
+      // Record the race end time
+      final endTime = DateTime.now().toIso8601String();
+
+      // Update the race status to completed
+      final response = await client.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'status': RaceStatus.completed.name,
+          'endTime': endTime,
+        }),
+      );
+
+      if (response.statusCode != HttpStatus.ok) {
+        throw Exception('Failed to end the race: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error ending the race: $e');
+    }
+  }
 
   @override
   Future<List<Participant>> fetchDashboardScore(String raceId) {
@@ -274,15 +339,36 @@ class FireRaceRepo extends RaceRepo {
   }
 
   @override
-  Future<Race?> fetchRace(String raceId) {
-    // TODO: implement fetchRace
-    throw UnimplementedError();
+  Future<Map<String, Race>> fetchRace(String raceId) async {
+    try {
+      final uri = Uri.parse('${Environment.allRacesUrl}/$raceId.json');
+      final http.Response response = await http.get(uri);
+
+      if (response.statusCode != HttpStatus.ok) {
+        throw Exception('Failed to fetch races');
+      }
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      // Parse the response into a Map<String, Race>
+      final Map<String, Race> races = {};
+      responseBody.forEach((key, value) {
+        races[key] = Race.fromJson({
+          ...value,
+          'uid': key,
+        }); // Use your fromJson method to convert to Race
+      });
+
+      return races;
+    } catch (e) {
+      throw Exception('Failed to fetch races: $e');
+    }
   }
 
   @override
   Future<Map<String, Race>> fetchRaces() async {
     try {
-      final uri = Uri.parse(Environment.allRacesUrl); // Replace with actual URL
+      final uri = Uri.parse(Environment.allRacesUrl);
       final http.Response response = await http.get(uri);
 
       if (response.statusCode != HttpStatus.ok) {
@@ -430,22 +516,50 @@ class FireRaceRepo extends RaceRepo {
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       // Convert the JSON data into a list of maps
-      final List<Map<String, dynamic>> raceDetails = responseBody.entries.map((entry) {
-        final raceData = entry.value;
-        return {
-          'uid': entry.key,
-          'name': raceData['name'],
-          'participants': raceData['participants'] ?? {},
-          'segments': raceData['segments'] ?? {},
-          'startTime': raceData['startTime'],
-          'location': raceData['location'],
-          'status': raceData['status'],
-        };
-      }).toList();
+      final List<Map<String, dynamic>> raceDetails =
+          responseBody.entries.map((entry) {
+            final raceData = entry.value;
+            return {
+              'uid': entry.key,
+              'name': raceData['name'],
+              'participants': raceData['participants'] ?? {},
+              'segments': raceData['segments'] ?? {},
+              'startTime': raceData['startTime'],
+              'location': raceData['location'],
+              'status': raceData['status'],
+            };
+          }).toList();
 
       return raceDetails;
     } catch (e) {
       throw Exception('Failed to fetch race details: $e');
     }
-}
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchRaceParticipantById(
+    String raceId,
+  ) async {
+    try {
+      final uri = Uri.parse('${Environment.allRacesUrl}/$raceId.json');
+      final http.Response response = await http.get(uri);
+
+      if (response.statusCode != HttpStatus.ok) {
+        throw Exception('Failed to fetch participants for race $raceId');
+      }
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      final participantsMap =
+          responseBody['participants'] as Map<String, dynamic>? ?? {};
+      final participantsList =
+          participantsMap.values
+              .map<Map<String, dynamic>>((p) => p as Map<String, dynamic>)
+              .toList();
+
+      return participantsList;
+    } catch (e) {
+      throw Exception('Failed to fetch participants: $e');
+    }
+  }
 }

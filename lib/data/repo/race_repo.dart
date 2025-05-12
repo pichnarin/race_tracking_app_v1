@@ -13,6 +13,8 @@ abstract class RaceRepo {
 
   Future<void> startRaceEvent(String raceId);
 
+  Future<void> endRaceEvent(String raceId);
+
   Future<Participant> addParticipant({
     required String bib,
     required String raceId,
@@ -40,7 +42,10 @@ abstract class RaceRepo {
 
   Future<Map<String, Race>> fetchRaces();
 
-  Future<Race?> fetchRace(String raceId);
+  Future<Map<String, Race>> fetchRace(String raceId);
 
   Future<List<Map<String, dynamic>>> fetchRaceDetails();
+
+  Future<List<Map<String, dynamic>>> fetchRaceParticipantById(String raceId);
+
 }
