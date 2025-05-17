@@ -18,18 +18,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final FireRaceRepo _raceRepo = FireRaceRepo();
-  List<Race> _upcomingRaces = [];
-  List<Map<String, dynamic>> _raceDetails = [];
   List<Map<String, dynamic>> _raceList = [];
-  int _currentRaceIndex = 0;
-  int _currentFeatureIndex = 0;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _loadUpcomingRaces();
-    _loadRaceDetails();
     _loadRaceList();
   }
 
@@ -44,59 +38,13 @@ class _HomePageState extends State<HomePage> {
       final race = await _raceRepo.fetchRaceDetails();
       if (race.isNotEmpty) {
         setState(() {
-          _raceList = race;
+          // Filter races to include only those with status 'started'
+          _raceList = race.where((r) => r['status']?.toLowerCase() == 'started').toList();
         });
       }
     } catch (e) {
       print('Error fetching race details: $e');
     }
-  }
-
-  Future<void> _loadRaceDetails() async {
-    try {
-      final raceDetails = await _raceRepo.fetchRaceDetails();
-      if (raceDetails.isNotEmpty) {
-        setState(() {
-          _raceDetails = raceDetails;
-        });
-        _startRaceRotation();
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
-  }
-
-  Future<void> _loadUpcomingRaces() async {
-    try {
-      final races = await _raceRepo.fetchRaces();
-      final upcomingRaces =
-      races.values
-          .where((race) => race.status == RaceStatus.upcoming)
-          .toList();
-      if (upcomingRaces.isNotEmpty) {
-        setState(() {
-          _upcomingRaces = upcomingRaces;
-        });
-        _startRaceRotation();
-      }
-    } catch (e) {
-      print('Error fetching races: $e');
-    }
-  }
-
-  void _startRaceRotation() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      setState(() {
-        if (_upcomingRaces.isNotEmpty) {
-          _currentRaceIndex = (_currentRaceIndex + 1) % _upcomingRaces.length;
-        }
-        if (_raceDetails.isNotEmpty) {
-          _currentFeatureIndex =
-              (_currentFeatureIndex + 1) % _raceDetails.length;
-        }
-      });
-    });
   }
 
   @override
@@ -139,10 +87,19 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          if (_raceList.isNotEmpty)
+          if (_raceList.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Center(
+                child: Text(
+                  "No races available.",
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ),
+            )
+          else
             ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
               itemCount: _raceList.length,
               itemBuilder: (context, index) {
                 final race = _raceList[index];
@@ -150,8 +107,7 @@ class _HomePageState extends State<HomePage> {
                 final DateTime? startTime = DateTime.tryParse(
                   race['startTime'] ?? '',
                 );
-                final raceDate =
-                startTime != null
+                final raceDate = startTime != null
                     ? "${_formatMonthDay(startTime)}, ${startTime.year}"
                     : 'Unknown';
                 final totalParticipants =
@@ -168,12 +124,10 @@ class _HomePageState extends State<HomePage> {
                     raceDate: raceDate,
                     totalParticipants: "$totalParticipants participants",
                     raceStatus:
-                    StringCasingExtension(status.toString()).capitalize(),
-
+                        StringCasingExtension(status.toString()).capitalize(),
                     onTap: () {
-                      final raceId = race['uid']; // Make sure 'uid' exists
+                      final raceId = race['uid'];
                       if (raceId == null) {
-                        // Optional safeguard
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Missing race ID")),
                         );
@@ -202,8 +156,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       );
                     },
-
-
                   ),
                 );
               },

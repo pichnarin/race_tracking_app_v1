@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../screens/time_tracker/pages/home_page.dart';
-import '../../screens/time_tracker/pages/tracking_page.dart';
 import '../../screens/time_tracker/pages/result_page.dart';
 import 'time_tracker_navbar.dart';
 
@@ -12,11 +11,11 @@ class TimeTrackerApp extends StatefulWidget {
 }
 
 class _TimeTrackerAppState extends State<TimeTrackerApp> {
-  int _selectedIndex = 0; // Default to home page
+  int _selectedIndex = 0;
 
   final List<Widget> _pages = [
     HomePage(),
-    ResultPage(), 
+    ResultPage(),
   ];
 
   void _onItemSelected(int index) {

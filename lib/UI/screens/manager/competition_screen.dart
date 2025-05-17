@@ -210,7 +210,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredRaces.length > 7 ? 7 : filteredRaces.length,
+                itemCount: filteredRaces.length,
                 itemBuilder: (context, index) {
                   // final uid = filteredRaces[index]['uid'] ?? '';
                   final race = filteredRaces[index];

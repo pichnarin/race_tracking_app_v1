@@ -37,7 +37,7 @@ class Navbar extends StatelessWidget {
                 icon: Icons.home,
                 label: "Home",
                 isSelected: selectedIndex == 0,
-                onTap: () => onItemSelected(1),
+                onTap: () => onItemSelected(0),
               ),
             ),
             Expanded(
@@ -45,7 +45,7 @@ class Navbar extends StatelessWidget {
                 icon: Icons.fact_check_outlined,
                 label: "Result",
                 isSelected: selectedIndex == 1,
-                onTap: () => onItemSelected(2),
+                onTap: () => onItemSelected(1),
               ),
             ),
           ],

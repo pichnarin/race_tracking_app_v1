@@ -112,6 +112,15 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      tooltip: 'Back',
+                    ),
+
                     Expanded(
                       child: Center(
                         child: Text(
@@ -316,8 +325,39 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
                 ),
               ),
             ),
+
+          if (allParticipantsFinished(participants))
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ResultDetailScreen(raceData: race),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bar_chart),
+                  label: const Text('See Results'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
+
+
     );
   }
 }
