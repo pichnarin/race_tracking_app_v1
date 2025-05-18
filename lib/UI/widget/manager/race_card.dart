@@ -83,7 +83,7 @@ class RaceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "$totalParticipants · $raceDate",
+                      "$totalParticipants ${totalParticipants == "1" ? "participant" : "participants"} · $raceDate",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

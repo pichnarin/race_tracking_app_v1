@@ -52,6 +52,7 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
       };
 
       try {
+        // Await the future and get the created race
         final createdRace = await widget.repo.createRace(
           name: raceName,
           status: RaceStatus.upcoming,
@@ -60,6 +61,7 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
           location: location,
         );
 
+        // Call the callback with the created race
         widget.onRaceCreated(createdRace);
 
         Navigator.of(context).pop();

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
+import 'package:race_tracking_app_v1/data/model/participants.dart';
 
 enum RaceStatus {
   upcoming,
@@ -22,12 +22,13 @@ class RaceSegmentDetail {
 }
 
 class Race {
-  final String uid; // Firebase-generated UID will be assigned later
+  final String uid;
   final String name;
   final RaceStatus status;
   final DateTime startTime;
   final Map<String, RaceSegmentDetail> segments;
   final String location;
+  final Map<String, Participant>? participants;
 
   Race({
     required this.uid,
@@ -35,31 +36,32 @@ class Race {
     required this.status,
     required this.startTime,
     required this.segments,
-    required this.location
+    required this.location,
+    this.participants, // optional in constructor
   });
 
-
-  @override
-  bool operator ==(Object other) {
-    return other is Race && other.uid == uid;
-  }
-
-  @override
-  int get hashCode => super.hashCode ^ uid.hashCode;
-
   factory Race.fromJson(Map<String, dynamic> json) {
-    // Ensure that segments is properly cast to a Map<String, dynamic>
     final segmentMap = json['segments'] != null
         ? Map<String, dynamic>.from(json['segments'])
         : {};
-
-    // Now cast the map keys to String and create the parsedSegments
     final parsedSegments = segmentMap.map(
           (key, value) => MapEntry<String, RaceSegmentDetail>(
-        key as String,  // Ensure that the key is a String
+        key as String,
         RaceSegmentDetail.fromJson(value),
       ),
     );
+
+    // participants is optional, so handle null safely
+    Map<String, Participant>? parsedParticipants;
+    if (json['participants'] != null) {
+      final participantMap = Map<String, dynamic>.from(json['participants']);
+      parsedParticipants = participantMap.map(
+            (key, value) => MapEntry<String, Participant>(
+          key as String,
+          Participant.fromJson(Map<String, dynamic>.from(value)),
+        ),
+      );
+    }
 
     return Race(
       uid: json['uid'] as String? ?? '',
@@ -75,9 +77,9 @@ class Race {
           : DateTime.now(),
       segments: parsedSegments,
       location: json['location'] as String? ?? 'Unknown Location',
+      participants: parsedParticipants,
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -87,6 +89,16 @@ class Race {
       'startTime': startTime.toIso8601String(),
       'segments': segments.map((key, value) => MapEntry(key, value.toJson())),
       'location': location,
+      if (participants != null)
+        'participants': participants!.map((key, value) => MapEntry(key, value.toJson())),
     };
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Race && other.uid == uid;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ uid.hashCode;
 }
