@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/feature_race_card.dart';
-import '../../../data/firebase/fire_race_repo.dart';
-import '../../../data/model/races.dart';
+import '../../../data/repo/firebase_race_repo.dart';
+import '../../../model/races.dart';
 import '../../widget/manager/race_card.dart';
 import '../../widget/manager/upcoming_race_card.dart';
-import '../../widget/manager/manager_navbar.dart';
-
 import 'dart:async';
-
 import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {

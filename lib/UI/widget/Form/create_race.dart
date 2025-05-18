@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/data/repo/race_repo.dart';
-import '../../../data/model/races.dart';
+import '../../../model/races.dart';
+import '../../../model/race_segments_detail.dart';
 
 class CreateRaceForm extends StatefulWidget {
   final RaceRepo repo;

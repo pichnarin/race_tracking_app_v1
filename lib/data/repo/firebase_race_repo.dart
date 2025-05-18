@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:race_tracking_app_v1/data/model/participants.dart';
-import 'package:race_tracking_app_v1/data/model/races.dart';
+import 'package:race_tracking_app_v1/model/participants.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
 import 'package:race_tracking_app_v1/data/repo/race_repo.dart';
-
-import '../env.dart';
+import 'env_repo.dart';
+import '../../model/race_segments_detail.dart';
+import '../DTO/races_dto.dart';
+import '../DTO/participants_dto.dart';
 
 class FireRaceRepo extends RaceRepo {
   final client = http.Client();
@@ -334,7 +336,10 @@ class FireRaceRepo extends RaceRepo {
     return responseData.entries.map((entry) {
       final pid = entry.key;
       final data = entry.value;
-      return Participant.fromJson({...data, 'pid': pid, 'raceId': raceId});
+      final dto = ParticipantDTO.fromJson({...data, 'pid': pid, 'raceId': raceId});
+      
+      return dto.toModel();
+      
     }).toList();
   }
 
@@ -353,12 +358,16 @@ class FireRaceRepo extends RaceRepo {
       // Parse the response into a Map<String, Race>
       final Map<String, Race> races = {};
       responseBody.forEach((key, value) {
-        races[key] = Race.fromJson({
-          ...value,
-          'uid': key,
-        }); // Use your fromJson method to convert to Race
+
+        final raceDto = RaceDTO.fromJson({
+        ...value,
+        'uid': key,
+        
       });
 
+      races[key] = raceDto.toModel();
+         
+      });
       return races;
     } catch (e) {
       throw Exception('Failed to fetch races: $e');
@@ -380,10 +389,11 @@ class FireRaceRepo extends RaceRepo {
       // Parse the response into a Map<String, Race>
       final Map<String, Race> races = {};
       responseBody.forEach((key, value) {
-        races[key] = Race.fromJson({
+        final raceDto = RaceDTO.fromJson({
           ...value,
           'uid': key,
-        }); // Use your fromJson method to convert to Race
+        }); 
+        races[key] = raceDto.toModel();
       });
 
       return races;

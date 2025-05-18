@@ -1,5 +1,7 @@
-class Participant {
-  late final String pid;
+import '../../model/participants.dart';
+
+class ParticipantDTO {
+  final String pid;
   final String bib;
   final String name;
   final String raceId;
@@ -7,7 +9,7 @@ class Participant {
   final Map<String, DateTime> segmentFinishTimes;
   final String totalTime;
 
-  Participant({
+  ParticipantDTO({
     required this.pid,
     required this.bib,
     required this.name,
@@ -17,41 +19,59 @@ class Participant {
     required this.totalTime,
   });
 
-  @override
-  bool operator ==(Object other) {
-    return other is Participant && other.pid == pid;
-  }
-
-  @override
-  int get hashCode => super.hashCode ^ pid.hashCode;
-
-  // DTO: Converts JSON from Firestore to Participant object
-  factory Participant.fromJson(Map<String, dynamic> json) {
-    return Participant(
+  factory ParticipantDTO.fromJson(Map<String, dynamic> json) {
+    return ParticipantDTO(
       name: json['name'],
       pid: json['pid'] ?? '',
       bib: json['bib'] ?? '',
       raceId: json['raceId'] ?? '',
       segmentStartTimes: (json['segmentStartTimes'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, DateTime.parse(value)))
-          ?? {},
+              ?.map((key, value) => MapEntry(key, DateTime.parse(value))) ??
+          {},
       segmentFinishTimes: (json['segmentFinishTimes'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, DateTime.parse(value)))
-          ?? {},
+              ?.map((key, value) => MapEntry(key, DateTime.parse(value))) ??
+          {},
       totalTime: json['totalTime'] ?? '00:00:00',
     );
   }
 
-  // Converts Participant object to JSON map for Firestore storage
   Map<String, dynamic> toJson() {
     return {
+      'pid': pid,
+      'name': name,
       'bib': bib,
-      'race_id': raceId, // Mapping raceId to database field
+      'raceId': raceId,
       'segmentStartTimes': segmentStartTimes.map((key, value) =>
           MapEntry(key, value.toIso8601String())),
       'segmentFinishTimes': segmentFinishTimes.map((key, value) =>
           MapEntry(key, value.toIso8601String())),
       'totalTime': totalTime,
     };
+  }
+
+  // Conversion: DTO -> Model
+  Participant toModel() {
+    return Participant(
+      pid: pid,
+      bib: bib,
+      name: name,
+      raceId: raceId,
+      segmentStartTimes: segmentStartTimes,
+      segmentFinishTimes: segmentFinishTimes,
+      totalTime: totalTime,
+    );
+  }
+
+  // Conversion: Model -> DTO
+  factory ParticipantDTO.fromModel(Participant model) {
+    return ParticipantDTO(
+      pid: model.pid,
+      bib: model.bib,
+      name: model.name,
+      raceId: model.raceId,
+      segmentStartTimes: model.segmentStartTimes,
+      segmentFinishTimes: model.segmentFinishTimes,
+      totalTime: model.totalTime,
+    );
   }
 }

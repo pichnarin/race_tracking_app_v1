@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
-import '../../../data/firebase/fire_race_repo.dart';
+import '../../../data/repo/firebase_race_repo.dart';
 import '../../widget/Form/create_race.dart';
 import '../../widget/manager/race_card.dart';
 import 'detail_screen.dart';

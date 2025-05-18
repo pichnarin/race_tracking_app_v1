@@ -24,14 +24,6 @@ class Navbar extends StatelessWidget {
         child: Row(
           // Wrap each NavbarBtn in an Expanded to evenly space them and center content vertically
           children: [
-            // Expanded(
-            //   child: NavbarBtn(
-            //     icon: Icons.access_alarm_outlined,
-            //     label: "Tracking",
-            //     isSelected: selectedIndex == 0,
-            //     onTap: () => onItemSelected(0),
-            //   ),
-            // ),
             Expanded(
               child: NavbarBtn(
                 icon: Icons.home,

@@ -1,6 +1,6 @@
-import 'package:race_tracking_app_v1/data/model/races.dart';
-
-import '../model/participants.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
+import '../../model/participants.dart';
+import '../../model/race_segments_detail.dart';
 
 abstract class RaceRepo {
   Future<Race> createRace({

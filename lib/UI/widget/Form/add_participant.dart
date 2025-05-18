@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../data/firebase/fire_race_repo.dart';
-import '../../../data/model/races.dart';
+import '../../../data/repo/firebase_race_repo.dart';
+import '../../../model/races.dart';
 
 class AddParticipantForm extends StatefulWidget {
   final FireRaceRepo repo;

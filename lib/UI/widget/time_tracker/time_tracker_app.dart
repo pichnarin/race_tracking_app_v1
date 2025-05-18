@@ -35,3 +35,10 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
     );
   }
 }
+
+void main() {
+  runApp(MaterialApp(
+    home: TimeTrackerApp(),
+    )
+  );
+}

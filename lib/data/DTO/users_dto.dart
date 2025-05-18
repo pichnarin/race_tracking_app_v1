@@ -1,17 +1,16 @@
-class User{
+class UserDTO {
   final String uid;
   final String email;
   final String role;
 
-  User({
+  UserDTO({
     required this.uid,
     required this.email,
     required this.role,
   });
 
-  //dto
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  factory UserDTO.fromJson(Map<String, dynamic> json) {
+    return UserDTO(
       uid: json['uid'] as String,
       email: json['email'] as String,
       role: json['role'] as String,
