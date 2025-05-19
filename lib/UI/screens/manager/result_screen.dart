@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison, unused_import
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:race_tracking_app_v1/UI/provider/race_provider.dart';

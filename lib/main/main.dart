@@ -1,8 +1,12 @@
+// main.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/participant_provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/race_provider.dart';
 import 'package:race_tracking_app_v1/UI/screens/manager/competition_screen.dart';
 import 'package:race_tracking_app_v1/UI/screens/manager/result_screen.dart';
 import '../UI/screens/manager/home_screen.dart';
-import '../UI/widget/manager/manager_navbar.dart' ;
+import '../UI/widget/manager/manager_navbar.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -49,8 +53,16 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: MainScreen(),
-  ));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RaceProvider()),
+        ChangeNotifierProvider(create: (_) => ParticipantProvider()),
+      ],
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: MainScreen(),
+      ),
+    ),
+  );
 }

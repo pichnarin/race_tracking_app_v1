@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/data/repo/firebase_race_repo.dart';
 import 'package:race_tracking_app_v1/data/DTO/participants_dto.dart';
