@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/race_provider.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/feature_race_card.dart';
-import '../../../data/repo/firebase_race_repo.dart';
-import '../../../model/races.dart';
+import 'package:race_tracking_app_v1/data/DTO/races_dto.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
 import '../../widget/manager/race_card.dart';
 import '../../widget/manager/upcoming_race_card.dart';
+
 import 'dart:async';
+
 import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,20 +22,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FireRaceRepo _raceRepo = FireRaceRepo();
-  List<Race> _upcomingRaces = [];
-  List<Map<String, dynamic>> _raceDetails = [];
-  List<Map<String, dynamic>> _raceList = [];
   int _currentRaceIndex = 0;
   int _currentFeatureIndex = 0;
   Timer? _timer;
+  List<Race> _upcomingRaces = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUpcomingRaces();
-    _loadRaceDetails();
-    _loadRaceList();
+
+    // Initialize provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RaceProvider>(context, listen: false).loadRaces();
+      _loadUpcomingRaces();
+    });
+
+    _startRaceRotation();
   }
 
   @override
@@ -40,45 +46,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadRaceList() async {
-    try {
-      final race = await _raceRepo.fetchRaceDetails();
-      if (race.isNotEmpty) {
-        setState(() {
-          _raceList = race;
-        });
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
-  }
-
-  Future<void> _loadRaceDetails() async {
-    try {
-      final raceDetails = await _raceRepo.fetchRaceDetails();
-      if (raceDetails.isNotEmpty) {
-        setState(() {
-          _raceDetails = raceDetails;
-        });
-        _startRaceRotation();
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
-  }
-
   Future<void> _loadUpcomingRaces() async {
     try {
-      final races = await _raceRepo.fetchRaces();
-      final upcomingRaces =
-          races.values
-              .where((race) => race.status == RaceStatus.upcoming)
-              .toList();
+      final raceProvider = Provider.of<RaceProvider>(context, listen: false);
+      final races = raceProvider.races; // Now returns List<RaceDTO>
+
+      final upcomingRaces = races
+          .where((race) => race.status.name.toLowerCase() == 'upcoming')
+          .map((race) => race.toModel())
+          .toList();
+
       if (upcomingRaces.isNotEmpty) {
         setState(() {
           _upcomingRaces = upcomingRaces;
         });
-        _startRaceRotation();
       }
     } catch (e) {
       print('Error fetching races: $e');
@@ -92,9 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_upcomingRaces.isNotEmpty) {
           _currentRaceIndex = (_currentRaceIndex + 1) % _upcomingRaces.length;
         }
-        if (_raceDetails.isNotEmpty) {
+
+        final raceProvider = Provider.of<RaceProvider>(context, listen: false);
+        if (raceProvider.races.isNotEmpty) {
           _currentFeatureIndex =
-              (_currentFeatureIndex + 1) % _raceDetails.length;
+              (_currentFeatureIndex + 1) % raceProvider.races.length;
         }
       });
     });
@@ -102,6 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final raceProvider = Provider.of<RaceProvider>(context);
+    final races = raceProvider.races; // Now returns List<RaceDTO>
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               .split(' ')[0],
                       icon: Icons.directions_run,
                     )
-                    : const CircularProgressIndicator(),
+                    : raceProvider.isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                      "No upcoming races",
+                      style: TextStyle(color: Colors.white),
+                    ),
               ],
             ),
           ),
@@ -153,39 +144,18 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-          if (_raceDetails.isNotEmpty)
+          if (races.isNotEmpty)
             Builder(
               builder: (context) {
-                final race = _raceDetails[_currentFeatureIndex];
-                final raceName = race['name'] ?? 'Unnamed Race';
-
-                final DateTime? startTime = DateTime.tryParse(
-                  race['startTime'] ?? '',
-                );
-                final raceDate =
-                    startTime != null
-                        ? startTime.toLocal().toString().split(' ')[0]
-                        : 'Unknown';
-
-                final time =
-                    startTime != null
-                        ? startTime
-                            .toLocal()
-                            .toString()
-                            .split(' ')[1]
-                            .substring(0, 5)
-                        : 'N/A';
-
-                final totalParticipants =
-                    (race['participants'] as Map?)?.length ?? 0;
-
+                final race = races[_currentFeatureIndex];
+                
                 return FeatureRaceCard(
                   image: 'https://via.placeholder.com/150',
-                  raceName: raceName,
-                  raceDate: raceDate,
+                  raceName: race.name,
+                  raceDate: race.startTime.toLocal().toString().split(' ')[0],
                   icon: Icons.directions_run,
-                  totalParticipants: '$totalParticipants',
-                  time: time,
+                  totalParticipants: '${race.segments.length}', // Using segments as proxy for participants
+                  time: race.startTime.toLocal().toString().split(' ')[1].substring(0, 5),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -220,24 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          if (_raceList.isNotEmpty)
+          if (races.isNotEmpty)
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _raceList.length > 3 ? 3 : _raceList.length,
+              itemCount: races.length > 3 ? 3 : races.length,
               itemBuilder: (context, index) {
-                final race = _raceList[index];
-                final raceName = race['name'] ?? 'Unnamed Race';
-                final DateTime? startTime = DateTime.tryParse(
-                  race['startTime'] ?? '',
-                );
-                final raceDate =
-                    startTime != null
-                        ? "${_formatMonthDay(startTime)}, ${startTime.year}"
-                        : 'Unknown';
-                final totalParticipants =
-                    (race['participants'] as Map?)?.length ?? 0;
-                final status = race['status'] ?? 'Unknown';
+                final race = races[index];
+                final raceDate = "${_formatMonthDay(race.startTime)}, ${race.startTime.year}";
+                final totalParticipants = race.segments.length; // Using segments as proxy for participants
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(
@@ -245,19 +206,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 4,
                   ),
                   child: RaceCard(
-                    raceName: raceName,
+                    raceName: race.name,
                     raceDate: raceDate,
                     totalParticipants: "$totalParticipants participants",
-                    raceStatus:
-                        StringCasingExtension(status.toString()).capitalize(),
-
-                    //go to each race detail
+                    raceStatus: StringCasingExtension(race.status.name).capitalize(),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => RaceDetailScreen(raceData: race),
+                          builder: (context) => RaceDetailScreen(raceData: race),
                         ),
                       );
                     },

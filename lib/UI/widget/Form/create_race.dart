@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:race_tracking_app_v1/data/repo/race_repo.dart';
-import '../../../model/races.dart';
-import '../../../model/race_segments_detail.dart';
+import 'package:provider/provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/race_provider.dart';
+import 'package:race_tracking_app_v1/model/race_segments_detail.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
 
 class CreateRaceForm extends StatefulWidget {
-  final RaceRepo repo;
   final void Function(Race createdRace) onRaceCreated;
 
   const CreateRaceForm({
     super.key,
-    required this.repo,
     required this.onRaceCreated,
   });
 
@@ -26,6 +25,7 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
   String running = '';
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
+  bool _isSubmitting = false;
 
   Future<void> _createRace() async {
     if (_formKey.currentState!.validate()) {
@@ -52,8 +52,13 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
         'running': RaceSegmentDetail(distance: running),
       };
 
+      setState(() {
+        _isSubmitting = true;
+      });
+
       try {
-        final createdRace = await widget.repo.createRace(
+        final raceProvider = Provider.of<RaceProvider>(context, listen: false);
+        final createdRace = await raceProvider.createRace(
           name: raceName,
           status: RaceStatus.upcoming,
           startTime: startTime,
@@ -63,15 +68,24 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
 
         widget.onRaceCreated(createdRace);
 
-        Navigator.of(context).pop();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Race created with UID: ${createdRace.uid}')),
-        );
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Race created with UID: ${createdRace.uid}')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to create race: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create race: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
       }
     }
   }
@@ -88,20 +102,14 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Race Name'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Enter race name'
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter race name' : null,
                 onSaved: (value) => raceName = value!,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Location'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Enter location'
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter location' : null,
                 onSaved: (value) => location = value!,
               ),
               const SizedBox(height: 10),
@@ -115,17 +123,19 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
-                      );
-                      if (date != null) {
-                        setState(() => selectedDate = date);
-                      }
-                    },
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (date != null) {
+                              setState(() => selectedDate = date);
+                            }
+                          },
                     child: const Text('Pick Date'),
                   ),
                 ],
@@ -140,15 +150,17 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () async {
-                      final time = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (time != null) {
-                        setState(() => selectedTime = time);
-                      }
-                    },
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (time != null) {
+                              setState(() => selectedTime = time);
+                            }
+                          },
                     child: const Text('Pick Time'),
                   ),
                 ],
@@ -178,10 +190,22 @@ class _CreateRaceFormState extends State<CreateRaceForm> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(onPressed: _createRace, child: const Text('Create')),
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _createRace,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Create'),
+        ),
       ],
     );
   }

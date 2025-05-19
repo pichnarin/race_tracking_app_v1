@@ -1,8 +1,12 @@
+// UI/screens/time_tracker/pages/result_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/time_tracker_provider.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
-import '../../../../data/repo/firebase_race_repo.dart';
+import 'package:race_tracking_app_v1/data/DTO/races_dto.dart';
 import '../../../widget/manager/race_card.dart';
 import '../../manager/result_detail_creen.dart';
+
 class ResultPage extends StatefulWidget {
   const ResultPage({super.key});
 
@@ -11,17 +15,15 @@ class ResultPage extends StatefulWidget {
 }
 
 class _ResultPageState extends State<ResultPage> {
-  final FireRaceRepo _raceRepo = FireRaceRepo();
   final TextEditingController searchController = TextEditingController();
-
-  List<Map<String, dynamic>> allRaces = [];
-  List<Map<String, dynamic>> filteredRaces = [];
-  String searchText = '';
 
   @override
   void initState() {
     super.initState();
-    _loadRaceList();
+    // Initialize provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TimeTrackerProvider>(context, listen: false).loadRaces();
+    });
   }
 
   @override
@@ -30,140 +32,102 @@ class _ResultPageState extends State<ResultPage> {
     super.dispose();
   }
 
-  Future<void> _loadRaceList() async {
-    try {
-      final races = await _raceRepo.fetchRaceDetails();
-      if (races.isNotEmpty) {
-        setState(() {
-          allRaces = races;
-        });
-        _applyFilters();
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
-  }
-
-  void _applyFilters() {
-    setState(() {
-      filteredRaces = allRaces.where((race) {
-        final name = (race['name'] ?? '').toString().toLowerCase();
-        final status = (race['status'] ?? '').toString().toLowerCase();
-
-        final matchesSearch = name.contains(searchText.toLowerCase());
-        final isCompleted = status == 'completed';
-
-        return matchesSearch && isCompleted;
-      }).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: filteredRaces.length + 2,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            // Header
-            return Container(
-              padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 16),
-              decoration: const BoxDecoration(
-                color: AppColor.primary,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-              ),
-              child: const Center(
-                child: Text(
-                  "Results Dashboard",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-              ),
-            );
-          }
+    final timeTrackerProvider = Provider.of<TimeTrackerProvider>(context);
+    final filteredRaces = timeTrackerProvider.filteredCompletedRaces; // Now returns List<RaceDTO>
 
-          if (index == 1) {
-            // Search and Filter
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      // Search
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: searchController,
-                          onChanged: (value) {
-                            searchText = value;
-                            _applyFilters();
-                          },
-                          decoration: InputDecoration(
-                            hintText: "Search races...",
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: searchController.text.isNotEmpty
-                                ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-                                searchText = '';
-                                _applyFilters();
-                              },
-                            )
-                                : null,
+    return Scaffold(
+      body: timeTrackerProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: () => timeTrackerProvider.loadRaces(),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: filteredRaces.length + 2,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    // Header
+                    return Container(
+                      padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 16),
+                      decoration: const BoxDecoration(
+                        color: AppColor.primary,
+                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "Results Dashboard",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1.1,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ],
+                    );
+                  }
+
+                  if (index == 1) {
+                    // Search
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: searchController,
+                            onChanged: timeTrackerProvider.updateSearch,
+                            decoration: InputDecoration(
+                              hintText: "Search races...",
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        searchController.clear();
+                                        timeTrackerProvider.updateSearch('');
+                                      },
+                                    )
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Race cards
+                  final race = filteredRaces[index - 2];
+                  final raceDate = "${_formatMonthDay(race.startTime)}, ${race.startTime.year}";
+                  final totalParticipants = race.segments.length; // Using segments as proxy for participants
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    child: RaceCard(
+                      raceName: race.name,
+                      raceDate: raceDate,
+                      totalParticipants: "$totalParticipants participants",
+                      raceStatus: race.status.name.capitalize(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ResultDetailScreen(raceData: race),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
-            );
-          }
-
-          // Race cards
-          final race = filteredRaces[index - 2];
-          final raceName = race['name'] ?? 'Unnamed Race';
-          final DateTime? startTime = DateTime.tryParse(race['startTime'] ?? '');
-          final raceDate = startTime != null
-              ? "${_formatMonthDay(startTime)}, ${startTime.year}"
-              : 'Unknown';
-          final totalParticipants = (race['participants'] as Map?)?.length ?? 0;
-          final status = race['status'] ?? 'Unknown';
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: RaceCard(
-              raceName: raceName,
-              raceDate: raceDate,
-              totalParticipants: "$totalParticipants participants",
-              raceStatus: status.toString().capitalize(),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResultDetailScreen(raceData: race),
-                  ),
-                );
-              },
             ),
-          );
-        },
-      ),
     );
   }
 

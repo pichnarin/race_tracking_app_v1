@@ -1,17 +1,17 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
-import '../../../data/repo/firebase_race_repo.dart';
-import '../../../model/races.dart';
+import 'package:provider/provider.dart';
+import 'package:race_tracking_app_v1/UI/provider/participant_provider.dart';
 
 class AddParticipantForm extends StatefulWidget {
-  final FireRaceRepo repo;
   final void Function() onParticipantAdded;
-  final String raceId; // Add raceId here
+  final String raceId;
 
   const AddParticipantForm({
     super.key,
-    required this.repo,
     required this.onParticipantAdded,
-    required this.raceId, // Accept raceId as a parameter
+    required this.raceId,
   });
 
   @override
@@ -22,9 +22,20 @@ class _AddParticipantFormState extends State<AddParticipantForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bibController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _bibController.dispose();
+    super.dispose();
+  }
+  
 
   @override
   Widget build(BuildContext context) {
+    final participantProvider = Provider.of<ParticipantProvider>(context, listen: false);
+    
     return AlertDialog(
       title: const Text('Add Participant'),
       content: SingleChildScrollView(
@@ -66,42 +77,65 @@ class _AddParticipantFormState extends State<AddParticipantForm> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(), // Cancel button
+          onPressed: _isSubmitting 
+              ? null 
+              : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              final name = _nameController.text.trim();
-              final bib = _bibController.text.trim();
-              try {
-                widget.repo.addParticipant(
-                  name: name,
-                  bib: bib,
-                  raceId: widget.raceId, // Use the raceId passed to the form
-                  segmentStartTimes: {},
-                  segmentFinishTimes: {},
-                  totalTime: '00:00:00',
-                );
+          onPressed: _isSubmitting 
+              ? null 
+              : () async {
+                  if (_formKey.currentState!.validate()) {
+                    final name = _nameController.text.trim();
+                    final bib = _bibController.text.trim();
+                    
+                    setState(() {
+                      _isSubmitting = true;
+                    });
+                    
+                    try {
+                      await participantProvider.addParticipant(
+                        name: name,
+                        bib: bib,
+                        raceId: widget.raceId,
+                      );
 
-                widget
-                    .onParticipantAdded(); // Notify the parent to refresh the participant list
-
-                Navigator.of(context).pop(); // Close the dialog
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Participant added successfully!'),
+                      widget.onParticipantAdded();
+                      
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Participant added successfully!'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to add participant: $e')),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isSubmitting = false;
+                        });
+                      }
+                    }
+                  }
+                },
+          child: _isSubmitting 
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to add participant: $e')),
-                );
-              }
-            }
-          }, // Add Participant button
-          child: const Text('Add Participant'),
+                )
+              : const Text('Add Participant'),
         ),
       ],
     );
