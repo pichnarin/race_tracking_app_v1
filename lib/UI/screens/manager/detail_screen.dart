@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:race_tracking_app_v1/UI/screens/manager/result_detail_creen.dart';
+import 'package:race_tracking_app_v1/UI/screens/manager/result_detail_screen.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/participant_list_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_detail_card.dart';
 import '../../theme/app_color.dart';

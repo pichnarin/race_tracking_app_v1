@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import '../../../../data/firebase/fire_race_repo.dart';
 import '../../../widget/manager/race_card.dart';
-import '../../manager/result_detail_creen.dart';
+import '../../manager/result_detail_screen.dart';
 class ResultPage extends StatefulWidget {
   const ResultPage({super.key});
 

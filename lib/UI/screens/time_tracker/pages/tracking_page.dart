@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_color.dart';
-import '../../manager/result_detail_creen.dart';
+import '../../manager/result_detail_screen.dart';
 
 class TrackingPage extends StatefulWidget {
   final Map<String, dynamic> raceData;

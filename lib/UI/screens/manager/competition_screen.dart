@@ -91,12 +91,20 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                         onPressed: () {
                           showDialog(
                             context: context,
-                            builder: (_) => CreateRaceForm(
-                              repo: Provider.of<RaceProvider>(context, listen: false).repo,
-                              onRaceCreated: (_) {
-                                Provider.of<RaceProvider>(context, listen: false).fetchRaces();
-                              },
-                            ),
+                            builder:
+                                (_) => CreateRaceForm(
+                                  repo:
+                                      Provider.of<RaceProvider>(
+                                        context,
+                                        listen: false,
+                                      ).repo,
+                                  onRaceCreated: (_) {
+                                    Provider.of<RaceProvider>(
+                                      context,
+                                      listen: false,
+                                    ).fetchRaces();
+                                  },
+                                ),
                           );
                         },
                         icon: const Icon(Icons.add, color: Colors.white),
