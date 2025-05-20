@@ -20,7 +20,9 @@ class TrackingPage extends StatefulWidget {
 class _TrackingPageState extends State<TrackingPage> {
   void showLog(String message) {
     print(message);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -29,7 +31,10 @@ class _TrackingPageState extends State<TrackingPage> {
 
     final raceId = widget.race.uid;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final trackingProvider = Provider.of<TrackingProvider>(context, listen: false);
+      final trackingProvider = Provider.of<TrackingProvider>(
+        context,
+        listen: false,
+      );
       final raceProvider = Provider.of<RaceProvider>(context, listen: false);
 
       trackingProvider.setCurrentRace(raceId);
@@ -45,7 +50,8 @@ class _TrackingPageState extends State<TrackingPage> {
 
     final selectedBib = trackingProvider.selectedBib;
     final currentSegment = trackingProvider.getNextSegment();
-    final allFinished = raceProvider.participants.isNotEmpty &&
+    final allFinished =
+        raceProvider.participants.isNotEmpty &&
         trackingProvider.allParticipantsFinished(raceProvider.participants);
 
     return Scaffold(
@@ -55,7 +61,13 @@ class _TrackingPageState extends State<TrackingPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(widget.race.name),
-            _buildRaceDetails(widget.race, raceProvider, trackingProvider, selectedBib, currentSegment),
+            _buildRaceDetails(
+              widget.race,
+              raceProvider,
+              trackingProvider,
+              selectedBib,
+              currentSegment,
+            ),
             if (allFinished) _buildSeeResultsButton(widget.race),
           ],
         ),
@@ -84,7 +96,13 @@ class _TrackingPageState extends State<TrackingPage> {
     );
   }
 
-  Widget _buildRaceDetails(Race race, RaceProvider raceProvider, TrackingProvider trackingProvider, String? selectedBib, String currentSegment) {
+  Widget _buildRaceDetails(
+    Race race,
+    RaceProvider raceProvider,
+    TrackingProvider trackingProvider,
+    String? selectedBib,
+    String currentSegment,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -95,7 +113,10 @@ class _TrackingPageState extends State<TrackingPage> {
           Text("Status: ${StringCasing(race.status.name).capitalize()}"),
           const SizedBox(height: 16),
 
-          const Text("Participants (Tap to select):", style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            "Participants (Tap to select):",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 10),
 
           if (raceProvider.isLoading)
@@ -103,27 +124,56 @@ class _TrackingPageState extends State<TrackingPage> {
           else if (raceProvider.participants.isEmpty)
             const Text("No participants found for this race")
           else
-            _buildBibSelector(raceProvider.participants, trackingProvider.selectedBib, trackingProvider),
+            _buildBibSelector(
+              raceProvider.participants,
+              trackingProvider.selectedBib,
+              trackingProvider,
+            ),
 
           const SizedBox(height: 24),
           if (selectedBib != null) ...[
-            Text("🏃‍♂️ Selected Bib: $selectedBib", style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              "🏃‍♂️ Selected Bib: $selectedBib",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-            Text("Current Segment: ${currentSegment.isNotEmpty ? StringCasing(currentSegment).capitalize() : "All done!"}"),
+            Text(
+              "Current Segment: ${currentSegment.isNotEmpty ? StringCasing(currentSegment).capitalize() : "All done!"}",
+            ),
             const SizedBox(height: 12),
             if (currentSegment.isNotEmpty)
-              _buildRecordButton(currentSegment, selectedBib, race.uid, raceProvider, trackingProvider)
+              _buildRecordButton(
+                currentSegment,
+                selectedBib,
+                race.uid,
+                raceProvider,
+                trackingProvider,
+              )
             else
-              const Text("🎉 All Segments Recorded", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+              const Text(
+                "🎉 All Segments Recorded",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
           ] else ...[
-            const Text("⬅️ Tap a bib to begin tracking.", style: TextStyle(color: Colors.grey)),
+            const Text(
+              "⬅️ Tap a bib to begin tracking.",
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildBibSelector(List<Participant> participants, String? selectedBib, TrackingProvider trackingProvider) {
+  Widget _buildBibSelector(
+    List<Participant> participants,
+    String? selectedBib,
+    TrackingProvider trackingProvider,
+  ) {
     return SizedBox(
       height: 60,
       child: ListView.separated(
@@ -164,7 +214,13 @@ class _TrackingPageState extends State<TrackingPage> {
     );
   }
 
-  Widget _buildRecordButton(String segment, String bib, String raceId, RaceProvider raceProvider, TrackingProvider trackingProvider) {
+  Widget _buildRecordButton(
+    String segment,
+    String bib,
+    String raceId,
+    RaceProvider raceProvider,
+    TrackingProvider trackingProvider,
+  ) {
     return ElevatedButton(
       onPressed: () async {
         final now = DateTime.now();
@@ -194,9 +250,24 @@ class _TrackingPageState extends State<TrackingPage> {
     return Center(
       child: ElevatedButton(
         onPressed: () {
+          final raceProvider = Provider.of<RaceProvider>(
+            context,
+            listen: false,
+          );
+
+          final updatedRaceData = {
+            ...widget.race.toJson(),
+            'participants': {
+              for (var p in raceProvider.participants) p.bib: p.toJson(),
+            },
+          };
+
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ResultDetailScreen(raceData: race.toJson())),
+            MaterialPageRoute(
+              builder:
+                  (context) => ResultDetailScreen(raceData: updatedRaceData),
+            ),
           );
         },
         style: ElevatedButton.styleFrom(
@@ -205,7 +276,11 @@ class _TrackingPageState extends State<TrackingPage> {
         ),
         child: const Text(
           "See Results",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -213,5 +288,6 @@ class _TrackingPageState extends State<TrackingPage> {
 }
 
 extension StringCasing on String {
-  String capitalize() => isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
+  String capitalize() =>
+      isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
 }
