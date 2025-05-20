@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:race_tracking_app_v1/UI/providers/race_provider.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
-import 'package:race_tracking_app_v1/data/model/participants.dart';
-import 'package:race_tracking_app_v1/data/model/races.dart';
+import 'package:race_tracking_app_v1/model/participants.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
 
 import '../../../providers/tracking_provider.dart';
 import '../../manager/result_detail_screen.dart';

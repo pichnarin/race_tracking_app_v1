@@ -5,7 +5,7 @@ import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/feature_race_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/race_card.dart';
 import 'package:race_tracking_app_v1/UI/widget/manager/upcoming_race_card.dart';
-import '../../../data/model/races.dart';
+import '../../../model/races.dart';
 import '../../providers/race_provider.dart';
 import 'detail_screen.dart';
 

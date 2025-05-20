@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:race_tracking_app_v1/data/model/participants.dart';
+import 'package:race_tracking_app_v1/model/participants.dart';
 
 class TrackingProvider with ChangeNotifier {
   // Selected participant tracking

@@ -5,7 +5,7 @@ import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
 import '../../../providers/race_provider.dart';
 import '../../../providers/tracking_provider.dart';
 import '../../../widget/manager/race_card.dart';
-import '../../../../data/model/races.dart';
+import '../../../../model/races.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

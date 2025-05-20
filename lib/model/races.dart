@@ -1,24 +1,10 @@
-import 'package:flutter/foundation.dart';
-import 'package:race_tracking_app_v1/data/model/participants.dart';
+import '../model/race_segments_detail.dart';
+import '../model/participants.dart';
 
 enum RaceStatus {
   upcoming,
   started,
   completed,
-}
-
-class RaceSegmentDetail {
-  final String distance;
-
-  RaceSegmentDetail({required this.distance});
-
-  factory RaceSegmentDetail.fromJson(Map<String, dynamic> json) {
-    return RaceSegmentDetail(distance: json['distance'] as String);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'distance': distance};
-  }
 }
 
 class Race {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/firebase/fire_race_repo.dart';
+import '../../data/Firebase/fire_race_repo.dart';
 
 class ResultProvider with ChangeNotifier {
   final FireRaceRepo _raceRepo = FireRaceRepo();

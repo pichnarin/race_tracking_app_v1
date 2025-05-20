@@ -46,7 +46,6 @@ class Participant {
   Map<String, dynamic> toJson() {
     return {
       'bib': bib,
-      'name': name,
       'race_id': raceId, // Mapping raceId to database field
       'segmentStartTimes': segmentStartTimes.map((key, value) =>
           MapEntry(key, value.toIso8601String())),

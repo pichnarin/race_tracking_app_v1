@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:race_tracking_app_v1/data/firebase/fire_race_repo.dart';
-import 'package:race_tracking_app_v1/data/model/races.dart';
-import 'package:race_tracking_app_v1/data/model/participants.dart';
-
+import 'package:race_tracking_app_v1/data/Firebase/fire_race_repo.dart';
+import 'package:race_tracking_app_v1/model/races.dart';
+import 'package:race_tracking_app_v1/model/participants.dart';
+import '../../model/race_segments_detail.dart';
 class RaceProvider with ChangeNotifier {
   final FireRaceRepo _raceRepo;
 

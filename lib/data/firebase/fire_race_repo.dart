@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:race_tracking_app_v1/data/model/participants.dart';
-import 'package:race_tracking_app_v1/data/model/races.dart';
+import '../../model/participants.dart';
 import 'package:race_tracking_app_v1/data/repo/race_repo.dart';
-
-import '../env.dart';
+import '../../model/race_segments_detail.dart';
+import '../../model/races.dart';
+import '../repo/env.dart';
 
 class FireRaceRepo extends RaceRepo {
   final client = http.Client();
