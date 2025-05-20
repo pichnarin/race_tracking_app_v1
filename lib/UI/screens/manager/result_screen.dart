@@ -115,7 +115,7 @@ class ResultScreen extends StatelessWidget {
                     raceName: raceName,
                     raceDate: raceDate,
                     totalParticipants: "$totalParticipants participants",
-                    raceStatus: status.toString().capitalize(),
+                    raceStatus: StringCasingExtension(status.toString()).capitalize(),
                     onTap: () {
                       Navigator.push(
                         context,

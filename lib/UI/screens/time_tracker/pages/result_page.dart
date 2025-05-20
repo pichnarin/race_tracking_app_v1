@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
-import '../../../../data/firebase/fire_race_repo.dart';
-import '../../../widget/manager/race_card.dart';
+import 'package:race_tracking_app_v1/UI/widget/manager/race_card.dart';
+// import '../../../models/race.dart';
+import '../../../providers/race_provider.dart';
 import '../../manager/result_detail_screen.dart';
+
 class ResultPage extends StatefulWidget {
   const ResultPage({super.key});
 
@@ -11,17 +14,15 @@ class ResultPage extends StatefulWidget {
 }
 
 class _ResultPageState extends State<ResultPage> {
-  final FireRaceRepo _raceRepo = FireRaceRepo();
   final TextEditingController searchController = TextEditingController();
-
-  List<Map<String, dynamic>> allRaces = [];
-  List<Map<String, dynamic>> filteredRaces = [];
   String searchText = '';
 
   @override
   void initState() {
     super.initState();
-    _loadRaceList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RaceProvider>(context, listen: false).fetchRaceDetails();
+    });
   }
 
   @override
@@ -30,139 +31,144 @@ class _ResultPageState extends State<ResultPage> {
     super.dispose();
   }
 
-  Future<void> _loadRaceList() async {
-    try {
-      final races = await _raceRepo.fetchRaceDetails();
-      if (races.isNotEmpty) {
-        setState(() {
-          allRaces = races;
-        });
-        _applyFilters();
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
-  }
-
-  void _applyFilters() {
-    setState(() {
-      filteredRaces = allRaces.where((race) {
-        final name = (race['name'] ?? '').toString().toLowerCase();
-        final status = (race['status'] ?? '').toString().toLowerCase();
-
-        final matchesSearch = name.contains(searchText.toLowerCase());
-        final isCompleted = status == 'completed';
-
-        return matchesSearch && isCompleted;
-      }).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final raceProvider = Provider.of<RaceProvider>(context);
+    final races = raceProvider.races;
+
+    // Filter races based on search and completed status
+    final filteredRaces =
+        races.where((race) {
+          final name = race.name.toLowerCase();
+          final status = race.status.name.toLowerCase();
+          final matchesSearch =
+              searchText.isEmpty || name.contains(searchText.toLowerCase());
+          final isCompleted = status == 'completed';
+          return matchesSearch && isCompleted;
+        }).toList();
+
     return Scaffold(
-      body: ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: filteredRaces.length + 2,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            // Header
-            return Container(
-              padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 16),
-              decoration: const BoxDecoration(
-                color: AppColor.primary,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-              ),
-              child: const Center(
-                child: Text(
-                  "Results Dashboard",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 1.1,
-                  ),
+      body: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.only(
+              top: 40,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColor.primary,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            ),
+            child: const Center(
+              child: Text(
+                "Results Dashboard",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1.1,
                 ),
               ),
-            );
-          }
+            ),
+          ),
 
-          if (index == 1) {
-            // Search and Filter
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      // Search
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: searchController,
-                          onChanged: (value) {
+          // Search
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) {
+                          setState(() {
                             searchText = value;
-                            _applyFilters();
-                          },
-                          decoration: InputDecoration(
-                            hintText: "Search races...",
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: searchController.text.isNotEmpty
-                                ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-                                searchText = '';
-                                _applyFilters();
-                              },
-                            )
-                                : null,
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Search races...",
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
                           ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon:
+                              searchController.text.isNotEmpty
+                                  ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      setState(() {
+                                        searchText = '';
+                                      });
+                                    },
+                                  )
+                                  : null,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Race cards
-          final race = filteredRaces[index - 2];
-          final raceName = race['name'] ?? 'Unnamed Race';
-          final DateTime? startTime = DateTime.tryParse(race['startTime'] ?? '');
-          final raceDate = startTime != null
-              ? "${_formatMonthDay(startTime)}, ${startTime.year}"
-              : 'Unknown';
-          final totalParticipants = (race['participants'] as Map?)?.length ?? 0;
-          final status = race['status'] ?? 'Unknown';
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: RaceCard(
-              raceName: raceName,
-              raceDate: raceDate,
-              totalParticipants: "$totalParticipants participants",
-              raceStatus: status.toString().capitalize(),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResultDetailScreen(raceData: race),
-                  ),
-                );
-              },
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        },
+          ),
+
+          // Race List
+          Expanded(
+            child:
+                raceProvider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredRaces.isEmpty
+                    ? const Center(child: Text("No completed races found"))
+                    : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: filteredRaces.length,
+                      itemBuilder: (context, index) {
+                        final race = filteredRaces[index];
+                        final raceDate =
+                            "${_formatMonthDay(race.startTime)}, ${race.startTime.year}";
+                        final totalParticipants =
+                            race.participants?.length ?? 0;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          child: RaceCard(
+                            raceName: race.name,
+                            raceDate: raceDate,
+                            totalParticipants:
+                                "$totalParticipants participants",
+                            raceStatus: StringCasingExtension(race.status.name).capitalize(),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => ResultDetailScreen(
+                                        raceData: race.toJson(),
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+          ),
+        ],
       ),
     );
   }
@@ -173,8 +179,18 @@ class _ResultPageState extends State<ResultPage> {
 
   String _getMonthAbbr(int month) {
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     return months[month - 1];
   }

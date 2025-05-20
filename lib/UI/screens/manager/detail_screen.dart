@@ -53,7 +53,7 @@ class _RaceDetailScreenState extends State<RaceDetailScreen> {
     final raceId = race['uid'];
     final DateTime? startDateTime = DateTime.tryParse(race['startTime'] ?? '');
     final location = race['location'] ?? 'Unknown';
-    final raceStatus = (race['status'] ?? 'unknown').toString().capitalize();
+    final raceStatus = StringCasingExtension((race['status'] ?? 'unknown').toString()).capitalize();
 
     final bool canStartRace =
         startDateTime != null &&

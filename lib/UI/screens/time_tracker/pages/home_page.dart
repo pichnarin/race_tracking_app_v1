@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:race_tracking_app_v1/UI/screens/time_tracker/pages/tracking_page.dart';
 import 'package:race_tracking_app_v1/UI/theme/app_color.dart';
-import 'dart:async';
-import '../../../../data/firebase/fire_race_repo.dart';
-import '../../../../data/model/races.dart';
+import '../../../providers/race_provider.dart';
+import '../../../providers/tracking_provider.dart';
 import '../../../widget/manager/race_card.dart';
-import '../../manager/detail_screen.dart';
-
+import '../../../../data/model/races.dart';
 
 class HomePage extends StatefulWidget {
-
   const HomePage({super.key});
 
   @override
@@ -17,82 +15,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final FireRaceRepo _raceRepo = FireRaceRepo();
-  List<Map<String, dynamic>> _raceList = [];
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _loadRaceList();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _loadRaceList() async {
-    try {
-      final race = await _raceRepo.fetchRaceDetails();
-      if (race.isNotEmpty) {
-        setState(() {
-          // Filter races to include only those with status 'started'
-          _raceList = race.where((r) => r['status']?.toLowerCase() == 'started').toList();
-        });
-      }
-    } catch (e) {
-      print('Error fetching race details: $e');
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RaceProvider>(context, listen: false).fetchRaces();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final raceProvider = Provider.of<RaceProvider>(context);
+
+    final activeRaces =
+    raceProvider.races
+        .where((r) => r.status == RaceStatus.started)
+        .toList();
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.only(
-              top: 40,
-              left: 16,
-              right: 16,
-              bottom: 16,
-            ),
-            decoration: const BoxDecoration(
-              color: AppColor.primary,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  "Time Tracker",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-               ]
-            ),
-          ),
+          _buildHeader(),
           const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Text(
-                  "Recent Competitions",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          if (_raceList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          _buildSectionTitle("Recent Competitions"),
+          if (raceProvider.isLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (activeRaces.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Center(
                 child: Text(
-                  "No races available.",
+                  "No active races available.",
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ),
@@ -100,19 +54,13 @@ class _HomePageState extends State<HomePage> {
           else
             ListView.builder(
               shrinkWrap: true,
-              itemCount: _raceList.length,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: activeRaces.length,
               itemBuilder: (context, index) {
-                final race = _raceList[index];
-                final raceName = race['name'] ?? 'Unnamed Race';
-                final DateTime? startTime = DateTime.tryParse(
-                  race['startTime'] ?? '',
-                );
-                final raceDate = startTime != null
-                    ? "${_formatMonthDay(startTime)}, ${startTime.year}"
-                    : 'Unknown';
-                final totalParticipants =
-                    (race['participants'] as Map?)?.length ?? 0;
-                final status = race['status'] ?? 'Unknown';
+                final race = activeRaces[index];
+                final raceDate =
+                    "${_formatMonthDay(race.startTime)}, ${race.startTime.year}";
+                final totalParticipants = race.participants?.length ?? 0;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(
@@ -120,39 +68,24 @@ class _HomePageState extends State<HomePage> {
                     vertical: 4,
                   ),
                   child: RaceCard(
-                    raceName: raceName,
+                    raceName: race.name,
                     raceDate: raceDate,
                     totalParticipants: "$totalParticipants participants",
                     raceStatus:
-                        StringCasingExtension(status.toString()).capitalize(),
+                    StringCasingExtension(race.status.name).capitalize(),
                     onTap: () {
-                      final raceId = race['uid'];
-                      if (raceId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Missing race ID")),
-                        );
-                        return;
-                      }
+                      Provider.of<TrackingProvider>(
+                        context,
+                        listen: false,
+                      ).reset();
 
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TrackingPage(
-                            raceData: race,
-                            recordSegmentTime: ({
-                              required String raceId,
-                              required String bib,
-                              required String segment,
-                              required DateTime finishTime,
-                            }) {
-                              return _raceRepo.recordSegmentTime(
-                                raceId: raceId,
-                                bib: bib,
-                                segment: segment,
-                                finishTime: finishTime,
-                              );
-                            },
-                          ),
+                          builder:
+                              (context) => TrackingPage(
+                            race: race,
+                          ), // pass Race instance directly
                         ),
                       );
                     },
@@ -160,6 +93,40 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 16),
+      decoration: const BoxDecoration(
+        color: AppColor.primary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "Time Tracker",
+            style: TextStyle(fontSize: 20, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

@@ -45,6 +45,9 @@ class ResultDetailScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final p = participants[index];
                 final rank = index + 1;
+                final segmentStartTimes = p['segmentStartTimes'] as Map<String, dynamic>? ?? {};
+                final segmentFinishTimes = p['segmentFinishTimes'] as Map<String, dynamic>? ?? {};
+
                 return Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -59,37 +62,77 @@ class ResultDetailScreen extends StatelessWidget {
                     ],
                   ),
                   padding: const EdgeInsets.all(16),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        child: Text(rank.toString()),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p['name'] ?? 'Unknown',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            child: Text(rank.toString()),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p['name'] ?? 'Unknown',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text("Bib: ${p['bib'] ?? '-'}"),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text("Bib: ${p['bib'] ?? '-'}"),
-                          ],
+                          ),
+                          Text(
+                            p['totalTime'] ?? '--:--:--',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Segment Durations:",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
-                      Text(
-                        p['totalTime'] ?? '--:--:--',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      const SizedBox(height: 8),
+                      ...segmentStartTimes.keys.map((segment) {
+                        final startTime = DateTime.tryParse(segmentStartTimes[segment] ?? '');
+                        final finishTime = DateTime.tryParse(segmentFinishTimes[segment] ?? '');
+                        final duration = (startTime != null && finishTime != null)
+                            ? finishTime.difference(startTime)
+                            : null;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                segment.capitalize(),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              Text(
+                                duration != null
+                                    ? _formatDuration(duration)
+                                    : "N/A",
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ],
                   ),
                 );
@@ -100,4 +143,16 @@ class ResultDetailScreen extends StatelessWidget {
       ),
     );
   }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return "$hours:$minutes:$seconds";
+  }
+}
+
+extension StringCasingExtension on String {
+  String capitalize() =>
+      isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
 }

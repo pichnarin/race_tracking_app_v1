@@ -253,16 +253,16 @@ class RaceProvider with ChangeNotifier {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchRaceDetails() async {
+  Future<void> fetchRaceDetails() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      return await _raceRepo.fetchRaceDetails();
+      final raceMap = await _raceRepo.fetchRaces(); // returns Map<String, Race>
+      _races = raceMap.values.toList(); // Store directly
     } catch (e) {
       _error = e.toString();
-      return [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -270,7 +270,8 @@ class RaceProvider with ChangeNotifier {
   }
 
   Future<List<Map<String, dynamic>>> fetchRaceParticipantById(
-      String raceId) async {
+    String raceId,
+  ) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
