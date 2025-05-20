@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/result_detail_screen.dart';
+import '../../providers/result_detail_provider.dart';
 
 class ResultDetailScreen extends StatelessWidget {
   final Map<String, dynamic>? raceData;

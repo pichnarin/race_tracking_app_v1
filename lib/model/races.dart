@@ -23,7 +23,7 @@ class Race {
     required this.startTime,
     required this.segments,
     required this.location,
-    this.participants, // optional in constructor
+    this.participants,
   });
 
   factory Race.fromJson(Map<String, dynamic> json) {
