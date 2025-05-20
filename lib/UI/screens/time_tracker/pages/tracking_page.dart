@@ -194,9 +194,24 @@ class _TrackingPageState extends State<TrackingPage> {
     return Center(
       child: ElevatedButton(
         onPressed: () {
+          final raceProvider = Provider.of<RaceProvider>(
+            context,
+            listen: false,
+          );
+
+          final updatedRaceData = {
+            ...widget.race.toJson(),
+            'participants': {
+              for (var p in raceProvider.participants) p.bib: p.toJson(),
+            },
+          };
+
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ResultDetailScreen(raceData: race.toJson())),
+            MaterialPageRoute(
+              builder:
+                  (context) => ResultDetailScreen(raceData: updatedRaceData),
+            ),
           );
         },
         style: ElevatedButton.styleFrom(
